@@ -1,0 +1,85 @@
+# Infraestrutura
+
+Tudo em Terraform, uma conta AWS, um ambiente por diretório. Hoje existe
+`prod`; `stg` é uma cópia de `envs/prod` com outro `terraform.tfvars` — os
+módulos são os mesmos, nada é duplicado.
+
+```
+infra/
+  bootstrap/          roda uma vez, cria o bucket de state
+  modules/
+    photo-storage/    bucket dos originais + CORS + versionamento
+    image-delivery/   stack da solução de imagem da AWS
+    site-hosting/     S3 + CloudFront + OAC + ACM + Route 53
+    cms-identity/     usuário IAM que o painel usa pra enviar fotos
+  envs/
+    prod/             Production
+```
+
+## Primeira subida
+
+```bash
+# 1. state (uma vez na vida, state local)
+cd infra/bootstrap
+terraform init && terraform apply
+
+# 2. preencha os [COLCHETES]
+$EDITOR infra/envs/prod/terraform.tfvars
+
+# 3. production
+cd ../envs/prod
+terraform init
+terraform plan -out=tfplan   # leia o plano
+terraform apply tfplan
+```
+
+## Antes do primeiro apply, confira duas coisas
+
+1. **`image_solution_template_url`** precisa apontar para uma **versão fixa** do
+   template da solução *Dynamic Image Transformation for CloudFront*, nunca
+   para `latest`. Upgrade é decisão, não acidente.
+2. **Os nomes dos parâmetros** dessa stack (`SourceBuckets`, `CorsEnabled`,
+   `CorsOrigin`, …) mudam entre releases. Abra o template da versão fixada e
+   confirme antes de rodar — é por isso que `parameters` é um mapa aberto em
+   vez de campos fixos no módulo.
+
+## A chave do CMS
+
+`create_cms_access_key` é `false` de propósito. Se virar `true`, o Terraform
+cria a chave e **o segredo fica no state** — que estaria criptografado e
+privado, mas continua sendo um segredo em repouso num lugar que muita gente
+acaba tendo acesso.
+
+O caminho recomendado: criar a chave no console para o usuário
+`isabel-prod-cms` e entregar à Isabel por um gerenciador de senhas. O usuário
+já nasce com escopo mínimo (Get/Put/Delete/List só no bucket de fotos, sem
+acesso ao console), porque a chave vive no navegador dela — o Sveltia assina
+no browser.
+
+## Deploy do site
+
+O Terraform cria a casa; o CI põe o conteúdo:
+
+```bash
+aws s3 sync ./dist "s3://$(terraform output -raw bucket_site)" --delete
+aws cloudfront create-invalidation \
+  --distribution-id "$(terraform output -raw distribution_id)" \
+  --paths '/*'
+```
+
+Fotos não passam por aqui: vão do navegador da Isabel direto pro bucket de
+originais.
+
+## Custo esperado
+
+CloudFront tem 1 TB de saída e 10 M de requisições por mês sempre grátis, o
+que cobre esse site inteiro. O que sobra é S3 (~US$ 0,023/GB/mês) e alguns
+centavos de Lambda. **O S3 não tem mais free tier permanente** — conta nova
+recebe US$ 200 de crédito por 6 meses. Crie um orçamento no Billing com
+alerta, não confie na memória.
+
+## Ainda não rodou
+
+Este código foi escrito mas **não passou por `terraform validate` nem `plan`**
+— não há binário do Terraform no ambiente onde foi gerado. Trate o primeiro
+`plan` como revisão, não como formalidade.

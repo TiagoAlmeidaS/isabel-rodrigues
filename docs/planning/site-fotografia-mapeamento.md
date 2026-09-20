@@ -4,8 +4,10 @@ Protótipo visual (privado): https://claude.ai/artifact/E1tYremS1e734R4g71A8xG
 
 Dez pranchetas: Home desktop (animada), Ensaios (categoria), Agendamento
 (funcional), Home celular, Sistema visual, Abertura de marca (em loop),
-Catálogo de movimento (demos ao vivo), Pipeline de fotos / CDN, Painel da
-Isabel (abas funcionam) e Painel — análise de arquitetura.
+Catálogo de movimento (demos ao vivo), Fotos na AWS, Painel da Isabel (abas
+funcionam), Painel — análise de arquitetura e Infra — Terraform e ambientes.
+
+O código da infraestrutura vive em [`infra/`](../../infra/).
 
 ---
 
@@ -258,18 +260,77 @@ outro CMS git-based (Decap à frente) lê o mesmo formato. Não dá refém.
 
 ---
 
-## 7. Como isso vira site
+## 7. Infraestrutura como código
+
+Tudo em Terraform, uma conta AWS, **um ambiente por diretório**. Hoje existe
+`prod` (Production); `stg` será uma cópia de `envs/prod` com outro
+`terraform.tfvars` — mesmos módulos, só valores diferentes.
+
+```
+infra/
+  bootstrap/          roda uma vez, cria o bucket de state
+  modules/
+    photo-storage/    bucket dos originais + CORS + versionamento
+    image-delivery/   stack da solução de imagem da AWS
+    site-hosting/     S3 + CloudFront + OAC + ACM + Route 53
+    cms-identity/     usuário IAM que o painel usa pra enviar fotos
+  envs/
+    prod/             Production
+```
+
+### State
+
+Bucket S3 versionado e criptografado, uma chave por ambiente
+(`prod/terraform.tfstate`), com trava nativa via `use_lockfile` — dispensa a
+tabela DynamoDB que a documentação antiga pede. O bucket tem
+`prevent_destroy`.
+
+### Decisão registrada: CloudFormation dentro do Terraform
+
+É um cheiro, e assumido. A solução de imagem só existe como template CFN, e em
+troca a AWS mantém a Lambda — sharp, formatos novos, patches. Escrever a nossa
+daria layer em arm64, build no CI e atualização de segurança por nossa conta.
+Para este porte, não paga. O Terraform segue dono do ciclo de vida da stack
+via `aws_cloudformation_stack`.
+
+### O que o Terraform não faz
+
+- **Não publica o site.** Cria a casa; o CI faz `aws s3 sync ./dist` e
+  invalida o cache.
+- **Não sobe foto.** As fotos vão do navegador da Isabel direto pro bucket.
+- **Não cria a chave dela**, por padrão (`create_cms_access_key = false`). Se
+  criasse, o segredo ficaria no state. Criar no console e entregar por
+  gerenciador de senhas.
+
+### Dois cuidados antes do primeiro apply
+
+1. `image_solution_template_url` precisa apontar para uma **versão fixa** do
+   template, nunca `latest`.
+2. Os **nomes dos parâmetros** da stack mudam entre releases — conferir contra
+   a versão fixada. Por isso `parameters` é um mapa aberto, definido no
+   ambiente.
+
+### Estado atual do código
+
+Escrito, **não validado**: não havia binário do Terraform no ambiente onde foi
+gerado. O primeiro `terraform plan` é revisão, não formalidade.
+
+---
+
+## 8. Como isso vira site
 
 1. Astro ou Next estático + Tailwind na Vercel. Sem CMS na v1.
 2. As fotos vêm da CDN (seção 5), nunca do repositório.
 3. Cada caixa cinza do protótipo vira uma foto real do acervo.
 4. Cada `[COLCHETE]` é um dado que falta.
 
-## 8. O que ainda falta decidir
+## 9. O que ainda falta decidir
 
 - Nome/cidade de atendimento confirmados e número de WhatsApp.
 - O que está incluso em cada pacote (os valores ficam fora do site, por decisão).
 - Se Isabel aceita ter uma conta do GitHub para acessar o painel.
 - Quem é o dono da conta AWS (ela ou você) — muda quem paga e quem recebe alerta de billing.
+- O domínio e o ID da zona no Route 53 (`[COLCHETES]` em `infra/envs/prod/terraform.tfvars`).
+- A versão do template da solução de imagem a fixar.
 - Depoimentos reais autorizados.
 - Se entra "Smash the cake" ou se a quarta categoria é corporativo/eventos.

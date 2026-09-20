@@ -1,0 +1,13 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+
+# O .terraform.lock.hcl DEVE ser versionado — é o que fixa a versão do provider.
+
+# Nunca versionar
+*.tfvars.local
+.env
