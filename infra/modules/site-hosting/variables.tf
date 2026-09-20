@@ -31,13 +31,27 @@ variable "price_class" {
 }
 
 variable "imagens_origin_url" {
-  description = "URL da distribuição criada pela stack de imagem. Vazio = o site sobe sem o caminho /fit-in/*."
+  description = "URL da distribuição criada pela stack de imagem. Só é lida quando servir_imagens = true."
   type        = string
   default     = ""
 }
 
+variable "servir_imagens" {
+  description = <<-TEXTO
+    Liga o caminho /fit-in/* na distribuição.
+
+    Precisa ser uma flag explícita, e não algo derivado de imagens_origin_url:
+    a stack de imagem é criada no mesmo apply, então a URL dela é DESCONHECIDA
+    no momento do plano — e count/for_each não aceitam valor desconhecido.
+
+    Primeiro apply com false; depois que a stack existir e a URL estiver no
+    state, vire para true e aplique de novo.
+  TEXTO
+  type        = bool
+  default     = false
+}
+
 variable "auth_origin_domain" {
-  description = "Host da Lambda de autenticação do painel. Vazio = sem /oauth/* na distribuição."
+  description = "Host da Lambda de autenticação do painel. Obrigatório: o /oauth/* é sempre criado."
   type        = string
-  default     = ""
 }

@@ -19,12 +19,18 @@ locals {
   # A stack de imagem devolve uma URL com esquema; a origem quer só o host.
   imagens_origin_domain = replace(replace(var.imagens_origin_url, "https://", ""), "/", "")
 
-  # Sem a URL da stack, o comportamento simplesmente não é criado: o site
-  # sobe do mesmo jeito e as fotos entram no apply seguinte.
-  serve_imagens = var.imagens_origin_url != ""
+  # Flag explícita, nunca derivada da URL: a stack de imagem sobe no mesmo
+  # apply, então a URL é desconhecida na hora do plano, e count/for_each
+  # exigem valor conhecido. O site sobe sem /fit-in/*; as fotos entram no
+  # apply seguinte, com servir_imagens = true.
+  serve_imagens = var.servir_imagens
 
   auth_origin_id = "auth-${var.bucket_name}"
-  serve_auth     = var.auth_origin_domain != ""
+
+  # A Lambda de auth é criada junto com o site, sempre — não há caso em que
+  # esta distribuição suba sem /oauth/*. Constante de propósito: derivar isto
+  # do domínio da função traria de volta o problema do valor desconhecido.
+  serve_auth = true
 }
 
 resource "aws_s3_bucket" "site" {

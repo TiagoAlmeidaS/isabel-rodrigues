@@ -101,3 +101,15 @@ variable "oauth_client_secret_parameter" {
   type        = string
   default     = "/isabel/prod/oauth-client-secret"
 }
+
+variable "servir_imagens" {
+  description = <<-TEXTO
+    Liga /fit-in/* na distribuição do site.
+
+    Deixe false no primeiro apply: a stack de imagem é criada nesse mesmo
+    apply e a URL dela ainda não existe quando o plano é montado. Depois que
+    ela subir, vire para true e aplique de novo.
+  TEXTO
+  type        = bool
+  default     = false
+}

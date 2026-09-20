@@ -17,6 +17,10 @@ extra_cms_origins = ["http://localhost:4321"]
 # Chave do CMS criada no console, fora do state.
 create_cms_access_key = false
 
+# /fit-in/* entra no segundo apply: a URL da stack de imagem não existe
+# enquanto ela não sobe. Vire para true depois do primeiro apply.
+servir_imagens = false
+
 # Solução Dynamic Image Transformation for CloudFront, arquitetura Lambda.
 # Versão fixada: v8.1.1 (10/09/2026). Nomes dos parâmetros conferidos neste
 # template — todos terminam em "Parameter".

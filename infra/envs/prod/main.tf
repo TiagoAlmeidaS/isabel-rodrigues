@@ -71,7 +71,9 @@ module "site" {
   subject_alternative_names = var.subject_alternative_names
   hosted_zone_id            = local.zone_id
 
-  # Vem da stack de imagem; vazio no primeiro apply, preenchido no seguinte.
+  # A URL só é lida quando servir_imagens = true — no primeiro apply ela ainda
+  # é desconhecida, porque a stack de imagem sobe neste mesmo apply.
+  servir_imagens     = var.servir_imagens
   imagens_origin_url = lookup(module.imagens.stack_outputs, var.imagens_output_key, "")
   auth_origin_domain = module.cms_auth.origin_domain
 }
