@@ -130,28 +130,32 @@ e Alboom no nicho de ensaios).
 
 ---
 
-## 5. Pipeline de fotos e CDN
+## 5. Pipeline de fotos na AWS
 
-As fotos **não ficam no repositório**. O fluxo é:
+As fotos **não ficam no repositório**. Decisão: **S3 + CloudFront + Lambda**.
 
-1. **Isabel exporta do Lightroom** — JPG, lado maior 3000 px, qualidade 90,
-   sRGB. Um arquivo por foto; ela nunca redimensiona nada à mão.
-2. **Sobe pro bucket** (Cloudflare R2 ou Bunny Storage). O nome do arquivo é o
-   contrato: `newborn/helena-03.jpg`.
-3. **A CDN corta e converte** na hora, guardando em cache na borda.
-4. **O site escolhe o tamanho** via `srcset`.
+1. **Isabel arrasta o JPG no `/admin`.** O Sveltia assina com SigV4 e envia do
+   navegador direto pro bucket — sem servidor no meio.
+2. **S3 guarda só o original** de 3000 px. Bucket privado: ninguém acessa o S3
+   direto, só o CloudFront via OAC.
+3. **A Lambda corta e converte** no primeiro pedido de cada variante (sharp),
+   devolvendo AVIF, WebP ou JPEG.
+4. **CloudFront serve e guarda** com TTL de um ano. Da segunda visita em diante
+   a Lambda nem acorda.
 
 ### Contrato de URL
 
 ```
-original: /fotos/newborn/helena-03.jpg
-pedido:   /cdn-cgi/image/width=960,format=auto,quality=82/fotos/newborn/helena-03.jpg
+no bucket:  s3://isabel-fotos/newborn/helena-03.jpg
+o site pede: img.isabelrodrigues.com.br/fit-in/960x0/newborn/helena-03.jpg
 ```
 
-`format=auto` entrega AVIF pra quem aceita, WebP pro resto, JPG pro Safari
-antigo — sem exportar três vezes.
+O formato **não vai na URL**. Uma CloudFront Function lê o `Accept` do
+navegador e normaliza em três valores — `avif`, `webp`, `jpeg` — que entram na
+chave de cache. Cada largura tem no máximo três versões guardadas e o navegador
+recebe a melhor que aceita, sem nada no HTML.
 
-### Larguras fixas (a regra que segura o custo)
+### Larguras fixas
 
 | Largura | Onde aparece | Peso alvo (AVIF) |
 |---|---|---|
@@ -161,31 +165,43 @@ antigo — sem exportar três vezes.
 | 2000 px | Hero e foto aberta | ~380 kB |
 | 24 px | Placeholder borrado (LQIP) | ~0,4 kB, inline no HTML |
 
-Cinco variantes por foto, **sempre as mesmas**. Deixar a largura variar por
-viewport multiplica transformações — é assim que uma conta gratuita vira
-US$ 89/mês.
+Quatro larguras × três formatos = **12 variantes por foto no máximo**, geradas
+uma vez na vida e cacheadas por um ano.
 
-O LQIP de 24 px vai embutido no HTML e aparece borrado enquanto a foto real
-carrega. É o que impede a animação 02 (cortina) de abrir sobre um retângulo
-cinza.
+### Recursos na conta AWS
+
+| Recurso | O quê |
+|---|---|
+| S3 | Bucket `isabel-fotos`, privado, versionamento ligado |
+| CloudFront | Distribuição + OAC apontando pro bucket |
+| Lambda | Solução oficial *Dynamic Image Transformation for CloudFront*, arquitetura Lambda (até 6 MB) — uma stack CloudFormation, não código nosso |
+| CloudFront Function | Normaliza o `Accept` em avif/webp/jpeg |
+| IAM | Usuário `isabel-cms`: Get/Put/Delete/List **só nesse bucket** |
+| CORS | GET, PUT, DELETE, HEAD liberados pro domínio do site (o SigV4 dispara preflight) |
 
 ### Custo (verificado em setembro/2026)
 
-| Opção | Modelo | Custo previsto aqui |
+| Serviço | Preço | Aqui dá |
 |---|---|---|
-| **Cloudflare Images + R2** (recomendado) | 5.000 transformações únicas/mês grátis em imagens remotas, depois US$ 0,50/mil | **US$ 0** — 300 fotos × 5 larguras = 1.500 variantes, cacheadas |
-| Bunny Optimizer | US$ 9,50/mês por site, otimizações ilimitadas + ~US$ 0,01/GB de banda | ~US$ 10/mês, previsível |
-| Cloudinary | 25 créditos/mês grátis (1 crédito = 1 GB banda *ou* 1 GB storage *ou* mil transformações, mesmo balde); degrau seguinte US$ 89/mês | Grátis, mas com teto próximo |
+| CloudFront | 1 TB de saída e 10 M de requisições/mês, sempre grátis | US$ 0 |
+| S3 Standard | US$ 0,023 por GB/mês | ~US$ 0,12 com 5 GB de originais |
+| Lambda | Por execução | Centavos — ~1.500 execuções na vida do site |
 
-Recomendação: **Cloudflare Images + R2**. Com o volume dela cabe folgado no
-gratuito, e as variantes ficam cacheadas para sempre. Bunny vira a escolha se o
-tráfego crescer e o preço fixo valer mais que o zero.
+**Atenção:** o S3 não tem mais free tier permanente. Conta nova recebe US$ 200
+de crédito por 6 meses; depois a conta vem, ainda que em centavos. Vale criar um
+orçamento no Billing.
 
-### Trocar uma foto
+### Pontos de atenção
 
-1. Sobe o JPG no bucket com o nome que já está lá, substituindo.
-2. Limpa o cache daquele caminho (um botão no painel).
-3. Pronto — nenhum deploy, nenhum código, nenhum desenvolvedor.
+- **A chave IAM fica no navegador dela.** O Sveltia assina no browser, então a
+  Secret Access Key mora ali. Por isso: usuário IAM dedicado, sem acesso ao
+  console, escopo mínimo naquele bucket. Nunca a chave root.
+- **Trocar foto: versione, não invalide.** Invalidação no CloudFront é cobrada
+  por caminho depois de uma cota mensal. Com TTL de um ano, a troca se faz
+  mudando o nome do arquivo (`helena-03-v2.jpg`) — o painel já faz isso.
+- **Vindo do Cloudflare:** em dinheiro é empate (os dois ficam perto de zero
+  nessa escala). O que muda é montagem — uma stack, IAM e CORS aqui contra um
+  botão lá. Escolhido AWS por ser o terreno de casa.
 
 ---
 
@@ -196,17 +212,18 @@ Três caminhos analisados:
 
 | | Como funciona | Custo | Prazo | Risco |
 |---|---|---|---|---|
-| **A — Sveltia CMS** (recomendado) | Página `/admin` no próprio site; salva JSON no repositório e envia as fotos direto pro R2 | R$ 0/mês, sem backend | 2–3 dias | Ainda pré-1.0 |
+| **A — Sveltia CMS** (escolhido) | Página `/admin` no próprio site; salva JSON no repositório e envia as fotos direto pro S3 via SigV4 | Centavos/mês de S3 | 2–3 dias | Ainda pré-1.0 |
 | B — CMS hospedado (Sanity, Storyblok) | Painel pronto, app de celular | Grátis até um teto, depois assinatura | 2–4 dias | Fotos vivem na plataforma deles; migrar dá trabalho |
 | C — Painel próprio (Next + D1 + login) | Tudo nosso, login por e-mail | Infra ~R$ 0, caro em horas | 2–3 semanas | Toda falha de segurança é nossa |
 
-**Decisão: A.** O Sveltia tem integração nativa com Cloudflare R2 e faz upload
-do navegador direto pro bucket, sem proxy — exatamente o pipeline da seção 5.
-O conteúdo continua sendo dela: JSON no repositório, JPG no bucket.
+**Decisão: A + AWS.** O Sveltia tem integração nativa com Amazon S3 e faz
+upload do navegador direto pro bucket, sem proxy — exatamente o pipeline da
+seção 5. O conteúdo continua sendo dela: JSON no repositório, JPG no S3.
 
-**A pegadinha:** o login do Sveltia é com conta do GitHub. Isabel vai precisar
-de uma, criada por nós e adicionada como colaboradora — 10 minutos, uma vez só.
-Se isso for inaceitável, o caminho é o C, e o preço são duas semanas a mais.
+**Duas credenciais, não uma:** login no painel com conta do GitHub, e uma chave
+IAM que ela cola uma vez para poder enviar fotos. Criamos as duas — cerca de 15
+minutos. Se conta do GitHub for inaceitável para ela, o caminho é o C, e o
+preço são duas semanas a mais.
 
 ### O que fica editável
 
@@ -224,7 +241,7 @@ Painel que deixa mexer no layout vira site quebrado em três meses.
 ### Caminho de uma alteração
 
 1. Ela arrasta as fotos no `/admin` e clica em Publicar.
-2. Os JPG vão pro R2; o JSON vira um commit.
+2. Os JPG vão pro S3; o JSON vira um commit.
 3. O commit dispara o build — 60 a 90 segundos.
 4. Site no ar. Errou? O commit anterior volta em um clique.
 
@@ -253,5 +270,6 @@ outro CMS git-based (Decap à frente) lê o mesmo formato. Não dá refém.
 - Nome/cidade de atendimento confirmados e número de WhatsApp.
 - O que está incluso em cada pacote (os valores ficam fora do site, por decisão).
 - Se Isabel aceita ter uma conta do GitHub para acessar o painel.
+- Quem é o dono da conta AWS (ela ou você) — muda quem paga e quem recebe alerta de billing.
 - Depoimentos reais autorizados.
 - Se entra "Smash the cake" ou se a quarta categoria é corporativo/eventos.
