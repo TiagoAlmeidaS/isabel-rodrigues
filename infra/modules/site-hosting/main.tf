@@ -13,8 +13,8 @@ terraform {
 }
 
 locals {
-  s3_origin_id       = "s3-${var.bucket_name}"
-  imagens_origin_id  = "imagens-${var.bucket_name}"
+  s3_origin_id      = "s3-${var.bucket_name}"
+  imagens_origin_id = "imagens-${var.bucket_name}"
 
   # A stack de imagem devolve uma URL com esquema; a origem quer só o host.
   imagens_origin_domain = replace(replace(var.imagens_origin_url, "https://", ""), "/", "")
