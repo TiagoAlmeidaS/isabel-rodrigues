@@ -2,9 +2,10 @@
 
 Protótipo visual (privado): https://claude.ai/artifact/E1tYremS1e734R4g71A8xG
 
-Oito pranchetas: Home desktop (animada), Ensaios (categoria), Agendamento
+Dez pranchetas: Home desktop (animada), Ensaios (categoria), Agendamento
 (funcional), Home celular, Sistema visual, Abertura de marca (em loop),
-Catálogo de movimento (demos ao vivo) e Pipeline de fotos / CDN.
+Catálogo de movimento (demos ao vivo), Pipeline de fotos / CDN, Painel da
+Isabel (abas funcionam) e Painel — análise de arquitetura.
 
 ---
 
@@ -118,6 +119,11 @@ a mensagem e abre `wa.me/55...?text=` já preenchida:
 Zero backend, zero mensalidade, e ela continua fechando onde já fecha hoje.
 Nada é enviado sem ela ver — o botão só abre o WhatsApp com o texto escrito.
 
+**Valores não aparecem no site.** A seção "Investimento" lista o que está
+incluso em cada pacote e termina num CTA para receber a tabela no WhatsApp.
+Além de ser o padrão do nicho, isso força o contato — que é onde ela fecha — e
+evita que o preço seja comparado fora de contexto por quem nunca viu o trabalho.
+
 **Fase 2 — agenda real com sinal de 30–50%.** É o sinal, não a agenda, que
 derruba o não-comparecimento a quase zero (padrão relatado por Setmore, AgendeMe
 e Alboom no nicho de ensaios).
@@ -183,16 +189,69 @@ tráfego crescer e o preço fixo valer mais que o zero.
 
 ---
 
-## 6. Como isso vira site
+## 6. Painel de administração
+
+Isabel precisa trocar fotos, mexer em categorias e atualizar o telefone sozinha.
+Três caminhos analisados:
+
+| | Como funciona | Custo | Prazo | Risco |
+|---|---|---|---|---|
+| **A — Sveltia CMS** (recomendado) | Página `/admin` no próprio site; salva JSON no repositório e envia as fotos direto pro R2 | R$ 0/mês, sem backend | 2–3 dias | Ainda pré-1.0 |
+| B — CMS hospedado (Sanity, Storyblok) | Painel pronto, app de celular | Grátis até um teto, depois assinatura | 2–4 dias | Fotos vivem na plataforma deles; migrar dá trabalho |
+| C — Painel próprio (Next + D1 + login) | Tudo nosso, login por e-mail | Infra ~R$ 0, caro em horas | 2–3 semanas | Toda falha de segurança é nossa |
+
+**Decisão: A.** O Sveltia tem integração nativa com Cloudflare R2 e faz upload
+do navegador direto pro bucket, sem proxy — exatamente o pipeline da seção 5.
+O conteúdo continua sendo dela: JSON no repositório, JPG no bucket.
+
+**A pegadinha:** o login do Sveltia é com conta do GitHub. Isabel vai precisar
+de uma, criada por nós e adicionada como colaboradora — 10 minutos, uma vez só.
+Se isso for inaceitável, o caminho é o C, e o preço são duas semanas a mais.
+
+### O que fica editável
+
+| Arquivo | Conteúdo |
+|---|---|
+| `fotos.json` | arquivo, categoria, ordem, descrição, se é capa |
+| `categorias.json` | nome, endereço, capa, visível, ordem na home |
+| `textos.json` | título da abertura, sobre, depoimentos |
+| `contato.json` | WhatsApp, e-mail, Instagram, cidade |
+| `agenda.json` | mês, datas abertas, faixa ligada ou não |
+
+**Não fica editável, de propósito:** cores, fontes, espaçamento e animações.
+Painel que deixa mexer no layout vira site quebrado em três meses.
+
+### Caminho de uma alteração
+
+1. Ela arrasta as fotos no `/admin` e clica em Publicar.
+2. Os JPG vão pro R2; o JSON vira um commit.
+3. O commit dispara o build — 60 a 90 segundos.
+4. Site no ar. Errou? O commit anterior volta em um clique.
+
+### Acesso
+
+Uma conta só, a dela, com escrita no repositório. Sem níveis de usuário: um
+site de uma fotógrafa não tem equipe, e papel a mais é superfície de erro a
+mais. Se um dia tiver assistente, aí se cria o segundo acesso.
+
+### Plano B
+
+Se o Sveltia travar, o conteúdo continua sendo JSON num repositório — qualquer
+outro CMS git-based (Decap à frente) lê o mesmo formato. Não dá refém.
+
+---
+
+## 7. Como isso vira site
 
 1. Astro ou Next estático + Tailwind na Vercel. Sem CMS na v1.
 2. As fotos vêm da CDN (seção 5), nunca do repositório.
 3. Cada caixa cinza do protótipo vira uma foto real do acervo.
 4. Cada `[COLCHETE]` é um dado que falta.
 
-## 7. O que ainda falta decidir
+## 8. O que ainda falta decidir
 
 - Nome/cidade de atendimento confirmados e número de WhatsApp.
-- Os três pacotes e seus valores (ou se os valores ficam fora do site).
+- O que está incluso em cada pacote (os valores ficam fora do site, por decisão).
+- Se Isabel aceita ter uma conta do GitHub para acessar o painel.
 - Depoimentos reais autorizados.
 - Se entra "Smash the cake" ou se a quarta categoria é corporativo/eventos.
