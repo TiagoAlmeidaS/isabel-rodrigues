@@ -18,6 +18,20 @@ infra/
 
 ## Primeira subida
 
+```bash
+./infra/subir-prod.sh
+```
+
+O script faz a sequência inteira na ordem certa e **para onde depende de
+você** — delegação no Registro.br, OAuth App, client secret. Pode rodar
+quantas vezes quiser: cada etapa confere o que já existe antes de agir, e
+nenhum apply acontece sem você ler o plano antes.
+
+Ele começa mostrando a conta e a identidade da AWS e pedindo confirmação, para
+não criar o ambiente da Isabel na conta errada.
+
+O que ele faz, passo a passo — e o que você faria à mão se preferir:
+
 O domínio é `isabelrodrigues.com.br`, registrado no Registro.br. A zona do
 Route 53 é criada aqui, mas a **delegação é manual** — e o certificado ACM só
 valida depois dela. Por isso a ordem abaixo tem uma parada no meio.
