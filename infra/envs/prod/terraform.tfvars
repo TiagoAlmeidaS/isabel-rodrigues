@@ -31,5 +31,5 @@ github_branch = "main"
 
 # OAuth App do GitHub (Settings > Developer settings > OAuth Apps).
 # Callback: https://isabelrodrigues.com.br/oauth/redirect
-oauth_client_id               = "[CLIENT ID DO OAUTH APP]"
+oauth_client_id               = "Ov23liuvzAQ6nBKt8rNf"
 oauth_client_secret_parameter = "/isabel/prod/oauth-client-secret"
