@@ -18,8 +18,8 @@ extra_cms_origins = ["http://localhost:4321"]
 create_cms_access_key = false
 
 # /fit-in/* entra no segundo apply: a URL da stack de imagem não existe
-# enquanto ela não sobe. Vire para true depois do primeiro apply.
-servir_imagens = false
+# enquanto ela não sobe. A stack subiu (ApiEndpoint no state), entao ligado.
+servir_imagens = true
 
 # Solução Dynamic Image Transformation for CloudFront, arquitetura Lambda.
 # Versão fixada: v8.1.1 (10/09/2026). Nomes dos parâmetros conferidos neste
@@ -28,6 +28,12 @@ image_solution_template_url = "https://solutions-reference.s3.amazonaws.com/dyna
 
 github_repo   = "TiagoAlmeidaS/isabel-rodrigues"
 github_branch = "main"
+
+# A conta já tem o provider OIDC do GitHub, criado por outro projeto. É um
+# por conta, e ele é compartilhado: não criamos nem importamos aqui, para
+# este state não poder destruir algo de que os outros dependem.
+criar_provider_oidc = false
+provider_oidc_arn   = "arn:aws:iam::698516610485:oidc-provider/token.actions.githubusercontent.com"
 
 # OAuth App do GitHub (Settings > Developer settings > OAuth Apps).
 # Callback: https://isabelrodrigues.com.br/oauth/redirect
