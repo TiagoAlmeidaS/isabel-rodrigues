@@ -22,6 +22,9 @@ locals {
   # Sem a URL da stack, o comportamento simplesmente não é criado: o site
   # sobe do mesmo jeito e as fotos entram no apply seguinte.
   serve_imagens = var.imagens_origin_url != ""
+
+  auth_origin_id = "auth-${var.bucket_name}"
+  serve_auth     = var.auth_origin_domain != ""
 }
 
 resource "aws_s3_bucket" "site" {
@@ -143,6 +146,37 @@ resource "aws_cloudfront_cache_policy" "imagens" {
   }
 }
 
+# O login do painel entra pelo mesmo domínio: nada aqui pode ser cacheado, e
+# o cookie de CSRF precisa chegar inteiro na função.
+resource "aws_cloudfront_cache_policy" "sem_cache" {
+  count = local.serve_auth ? 1 : 0
+
+  name        = "sem-cache-${var.name_prefix}"
+  min_ttl     = 0
+  default_ttl = 0
+  max_ttl     = 0
+
+  parameters_in_cache_key_and_forwarded_to_origin {
+    enable_accept_encoding_gzip   = false
+    enable_accept_encoding_brotli = false
+    headers_config { header_behavior = "none" }
+    cookies_config { cookie_behavior = "none" }
+    query_strings_config { query_string_behavior = "none" }
+  }
+}
+
+resource "aws_cloudfront_origin_request_policy" "auth" {
+  count = local.serve_auth ? 1 : 0
+
+  name = "auth-${var.name_prefix}"
+
+  # Host de propósito fora: a URL de função rejeita um Host que não seja o
+  # dela. Nada mais do visitante é necessário.
+  headers_config { header_behavior = "none" }
+  cookies_config { cookie_behavior = "all" }
+  query_strings_config { query_string_behavior = "all" }
+}
+
 resource "aws_cloudfront_distribution" "site" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -170,6 +204,38 @@ resource "aws_cloudfront_distribution" "site" {
         origin_protocol_policy = "https-only"
         origin_ssl_protocols   = ["TLSv1.2"]
       }
+    }
+  }
+
+  dynamic "origin" {
+    for_each = local.serve_auth ? [1] : []
+
+    content {
+      domain_name = var.auth_origin_domain
+      origin_id   = local.auth_origin_id
+
+      custom_origin_config {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "https-only"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
+    }
+  }
+
+  dynamic "ordered_cache_behavior" {
+    for_each = local.serve_auth ? [1] : []
+
+    content {
+      path_pattern           = "/oauth/*"
+      target_origin_id       = local.auth_origin_id
+      viewer_protocol_policy = "https-only"
+      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+      cached_methods         = ["GET", "HEAD"]
+      compress               = true
+
+      cache_policy_id          = aws_cloudfront_cache_policy.sem_cache[0].id
+      origin_request_policy_id = aws_cloudfront_origin_request_policy.auth[0].id
     }
   }
 

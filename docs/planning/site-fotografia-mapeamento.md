@@ -254,6 +254,22 @@ IAM que ela cola uma vez para poder enviar fotos. Criamos as duas — cerca de 1
 minutos. Se conta do GitHub for inaceitável para ela, o caminho é o C, e o
 preço são duas semanas a mais.
 
+### O intermediário OAuth
+
+O login pelo GitHub precisa de um intermediário que troque o código por token.
+Existe o Worker oficial do Sveltia, que rodaria no Cloudflare sem código nosso.
+Optamos por uma **Lambda** (`infra/modules/cms-auth`), servida no mesmo domínio
+em `/oauth/*`: não traz um segundo provedor, uma segunda conta e um segundo
+lugar de deploy por causa de cem linhas, e o login fica no mesmo Terraform.
+
+Proteções: `state` casado com cookie HttpOnly de 10 minutos (CSRF), conferência
+da origem do opener antes de enviar o token, lista de domínios permitidos, e o
+client secret no Parameter Store lido em execução — nunca no state, nunca em
+variável de ambiente do Terraform.
+
+Trocar de volta para o Worker, se um dia pesar, é mudar o `base_url` do
+`config.yml`.
+
 ### O que fica editável
 
 | Arquivo | Conteúdo |
@@ -378,6 +394,6 @@ que falta.
 - Se Isabel aceita ter uma conta do GitHub para acessar o painel.
 - Quem é o dono da conta AWS (ela ou você) — muda quem paga e quem recebe alerta de billing.
 - A versão do template da solução de imagem a fixar (último `[COLCHETE]` do tfvars).
-- Publicar o Worker de autenticação do painel em `auth.isabelrodrigues.com.br`.
+- Criar o OAuth App do GitHub e guardar o client secret no Parameter Store.
 - Depoimentos reais autorizados.
 - Se entra "Smash the cake" ou se a quarta categoria é corporativo/eventos.

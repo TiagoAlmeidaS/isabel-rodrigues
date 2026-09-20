@@ -22,3 +22,8 @@ image_solution_template_url = "[URL DO TEMPLATE, VERSAO FIXA]"
 
 github_repo   = "TiagoAlmeidaS/isabel-rodrigues"
 github_branch = "main"
+
+# OAuth App do GitHub (Settings > Developer settings > OAuth Apps).
+# Callback: https://isabelrodrigues.com.br/oauth/redirect
+oauth_client_id               = "[CLIENT ID DO OAUTH APP]"
+oauth_client_secret_parameter = "/isabel/prod/oauth-client-secret"

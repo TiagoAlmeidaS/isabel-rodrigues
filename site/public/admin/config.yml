@@ -10,9 +10,10 @@ backend:
   name: github
   repo: TiagoAlmeidaS/isabel-rodrigues
   branch: main
-  # Sem isto o login do GitHub não fecha o ciclo em domínio próprio.
-  # Deploy do sveltia-cms-auth como Worker, ou outro provedor OAuth.
-  base_url: https://auth.isabelrodrigues.com.br
+  # O intermediário OAuth roda no mesmo domínio, em /oauth/*
+  # (Lambda + CloudFront — ver infra/modules/cms-auth).
+  base_url: https://isabelrodrigues.com.br
+  auth_endpoint: oauth/authorize
 
 media_libraries:
   aws_s3:

@@ -37,3 +37,8 @@ output "nameservers" {
   description = "Cole estes servidores no Registro.br. Sem isso o domínio não resolve e o certificado não valida."
   value       = var.criar_zona ? aws_route53_zone.principal[0].name_servers : []
 }
+
+output "cms_auth_url" {
+  description = "URL direta da Lambda de auth. O painel usa o domínio do site; esta serve para depurar."
+  value       = module.cms_auth.function_url
+}

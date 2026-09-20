@@ -37,6 +37,26 @@ module "cms" {
   create_access_key = var.create_cms_access_key
 }
 
+data "aws_ssm_parameter" "oauth_client_secret" {
+  name = var.oauth_client_secret_parameter
+  # Sem with_decryption: só queremos o ARN. O valor é lido pela Lambda,
+  # em tempo de execução, para não passar pelo state.
+  with_decryption = false
+}
+
+module "cms_auth" {
+  source = "../../modules/cms-auth"
+
+  function_name = "${local.name_prefix}-cms-auth"
+  region        = var.region
+  client_id     = var.oauth_client_id
+
+  client_secret_parameter_name = var.oauth_client_secret_parameter
+  client_secret_parameter_arn  = data.aws_ssm_parameter.oauth_client_secret.arn
+
+  allowed_domains = concat([var.domain_name], var.subject_alternative_names)
+}
+
 module "site" {
   source = "../../modules/site-hosting"
 
@@ -53,6 +73,7 @@ module "site" {
 
   # Vem da stack de imagem; vazio no primeiro apply, preenchido no seguinte.
   imagens_origin_url = lookup(module.imagens.stack_outputs, var.imagens_output_key, "")
+  auth_origin_domain = module.cms_auth.origin_domain
 }
 
 module "imagens" {

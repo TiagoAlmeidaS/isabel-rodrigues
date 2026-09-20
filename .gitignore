@@ -17,3 +17,4 @@ dist/
 *.tfvars.local
 .env
 .env.local
+.build/

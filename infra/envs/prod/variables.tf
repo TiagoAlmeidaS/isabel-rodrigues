@@ -90,3 +90,14 @@ variable "provider_oidc_arn" {
   type        = string
   default     = ""
 }
+
+variable "oauth_client_id" {
+  description = "Client ID do OAuth App do GitHub usado pelo painel."
+  type        = string
+}
+
+variable "oauth_client_secret_parameter" {
+  description = "Nome do parâmetro SecureString com o client secret. Crie no console; o Terraform só lê o ARN."
+  type        = string
+  default     = "/isabel/prod/oauth-client-secret"
+}

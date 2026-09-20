@@ -63,6 +63,34 @@ versões do template.
    confirme antes de rodar — é por isso que `parameters` é um mapa aberto em
    vez de campos fixos no módulo.
 
+## O login do painel
+
+O painel autentica pelo GitHub, e o intermediário OAuth é a Lambda de
+`modules/cms-auth`, servida no mesmo domínio em `/oauth/*`. Antes do apply:
+
+1. Crie um **OAuth App** no GitHub (Settings → Developer settings → OAuth Apps)
+   com callback `https://isabelrodrigues.com.br/oauth/redirect`.
+2. Guarde o **client secret** no Parameter Store como SecureString:
+
+   ```bash
+   aws ssm put-parameter \
+     --name /isabel/prod/oauth-client-secret \
+     --type SecureString \
+     --value '<o segredo>' \
+     --region sa-east-1
+   ```
+
+   Criado fora do Terraform de propósito: assim o segredo não passa pelo
+   state. O Terraform só lê o ARN, e a Lambda busca o valor em execução.
+3. Ponha o **client id** em `oauth_client_id` no tfvars. Ele não é segredo —
+   sozinho não troca código por token.
+
+Por que não o Worker oficial do Sveltia no Cloudflare: funcionaria, e sem
+código nosso. Ficou em Lambda para não trazer um segundo provedor, uma segunda
+conta e um segundo lugar de deploy por causa de cem linhas — e assim o login
+mora no mesmo domínio, no mesmo Terraform, no mesmo repositório. Se um dia
+pesar, trocar é mudar `base_url` no `config.yml`.
+
 ## A chave do CMS
 
 `create_cms_access_key` é `false` de propósito. Se virar `true`, o Terraform

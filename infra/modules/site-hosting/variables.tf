@@ -35,3 +35,9 @@ variable "imagens_origin_url" {
   type        = string
   default     = ""
 }
+
+variable "auth_origin_domain" {
+  description = "Host da Lambda de autenticação do painel. Vazio = sem /oauth/* na distribuição."
+  type        = string
+  default     = ""
+}
