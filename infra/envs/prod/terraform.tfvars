@@ -29,6 +29,10 @@ image_solution_template_url = "https://solutions-reference.s3.amazonaws.com/dyna
 github_repo   = "TiagoAlmeidaS/isabel-rodrigues"
 github_branch = "main"
 
+# Formato imutavel do claim "sub" (use_immutable_subject). Confirmado no
+# CloudTrail: e isto que o GitHub envia ao assumir a role.
+github_repo_subject = "TiagoAlmeidaS@60373493/isabel-rodrigues@1377788462"
+
 # A conta já tem o provider OIDC do GitHub, criado por outro projeto. É um
 # por conta, e ele é compartilhado: não criamos nem importamos aqui, para
 # este state não poder destruir algo de que os outros dependem.

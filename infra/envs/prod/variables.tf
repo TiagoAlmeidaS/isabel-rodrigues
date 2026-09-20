@@ -113,3 +113,15 @@ variable "servir_imagens" {
   type        = bool
   default     = false
 }
+
+variable "github_repo_subject" {
+  description = <<-TEXTO
+    Dono/repo como o GitHub escreve no claim "sub" do OIDC.
+
+    Vazio = usa github_repo (formato antigo). Com use_immutable_subject
+    ligado, que hoje e o padrao, o GitHub manda LOGIN@IDDONO/NOME@IDREPO e
+    o formato antigo nao casa na trust policy.
+  TEXTO
+  type        = string
+  default     = ""
+}

@@ -11,6 +11,16 @@ locals {
   name_prefix = "${var.project}-${var.environment}"
   zone_id     = var.criar_zona ? aws_route53_zone.principal[0].zone_id : var.hosted_zone_id
 
+  # O GitHub emite o claim "sub" no formato imutável quando o repositório tem
+  # use_immutable_subject ligado — hoje o padrão:
+  #
+  #   repo:LOGIN@IDDONO/NOME@IDREPO:ref:refs/heads/BRANCH
+  #
+  # O formato antigo (repo:LOGIN/NOME) não bate, e o AssumeRoleWithWebIdentity
+  # falha com AccessDenied. Os ids saem de:
+  #   gh api repos/<repo> --jq '{repo: .id, dono: .owner.id}'
+  github_subject = var.github_repo_subject != "" ? var.github_repo_subject : var.github_repo
+
   # O /admin roda no próprio site, então é dali que vêm os uploads.
   cms_origins = concat(
     ["https://${var.domain_name}"],
@@ -113,7 +123,7 @@ module "ci" {
   distribution_arn = module.site.distribution_arn
 
   subjects_permitidos = [
-    "repo:${var.github_repo}:ref:refs/heads/${var.github_branch}",
+    "repo:${local.github_subject}:ref:refs/heads/${var.github_branch}",
   ]
 
   criar_provider_oidc = var.criar_provider_oidc
