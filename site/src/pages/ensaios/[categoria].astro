@@ -1,0 +1,105 @@
+---
+import Base from '../../layouts/Base.astro';
+import Foto from '../../components/Foto.astro';
+import FaixaAgenda from '../../components/FaixaAgenda.astro';
+import { todasCategorias, categoriasVisiveis, fotosDe } from '../../lib/conteudo';
+
+export function getStaticPaths() {
+  // Categorias ocultas também geram página: o endereço continua valendo
+  // para quem já recebeu o link, mesmo antes do anúncio.
+  return todasCategorias().map((categoria) => ({
+    params: { categoria: categoria.slug },
+    props: { categoria },
+  }));
+}
+
+const { categoria } = Astro.props;
+const fotos = fotosDe(categoria.slug);
+const menu = categoriasVisiveis();
+---
+
+<Base
+  titulo={`${categoria.nome} — Isabel Rodrigues`}
+  descricao={categoria.descricao}
+  navSolida
+>
+  <header class="cabeca container">
+    <div class="cabeca__titulo">
+      <h1>{categoria.nome}</h1>
+      <span class="regua" aria-hidden="true"></span>
+      <span class="rotulo">{fotos.length} {fotos.length === 1 ? 'foto' : 'fotos'}</span>
+    </div>
+    <p>{categoria.descricao}</p>
+
+    <nav class="filtros" aria-label="Categorias">
+      {menu.map((item) => (
+        <a
+          href={`/ensaios/${item.slug}/`}
+          class:list={['pilula', item.slug === categoria.slug && 'pilula--ativa']}
+          aria-current={item.slug === categoria.slug ? 'page' : undefined}
+        >
+          {item.nome}
+        </a>
+      ))}
+    </nav>
+  </header>
+
+  {fotos.length === 0 ? (
+    <p class="vazio container">
+      Essa galeria ainda está sendo montada. As fotos aparecem aqui assim que
+      forem enviadas pelo painel.
+    </p>
+  ) : (
+    <div class="galeria container" data-escalonar>
+      {fotos.map((foto, i) => (
+        <Foto
+          foto={foto}
+          sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
+          proporcao="3 / 4"
+          reveal={i < 3 ? 'cortina' : 'subir'}
+          prioridade={i === 0}
+          class="cartao"
+        />
+      ))}
+    </div>
+  )}
+
+  <FaixaAgenda />
+</Base>
+
+<style>
+  .cabeca { padding-block: 130px 50px; display: flex; flex-direction: column; gap: 28px; }
+  .cabeca__titulo { display: flex; align-items: flex-end; gap: 40px; }
+  .cabeca h1 { font-size: clamp(46px, 7vw, 76px); }
+  .cabeca p { margin: 0; max-width: 62ch; color: var(--tinta-media); }
+  .regua { flex-grow: 1; height: 1px; background: var(--linha); margin-bottom: 20px; }
+
+  .filtros { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pilula {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 22px;
+    border: 1px solid var(--linha);
+    border-radius: 999px;
+    font-size: 14px;
+    color: var(--tinta);
+  }
+  .pilula--ativa { background: var(--tinta); border-color: var(--tinta); color: var(--areia); }
+
+  .galeria {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+    padding-bottom: 90px;
+  }
+  .vazio { padding-block: 40px 90px; color: var(--tinta-fraca); }
+
+  @media (max-width: 1100px) { .galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) {
+    .galeria { grid-template-columns: 1fr; }
+    .cabeca { padding-block: 110px 30px; }
+    .cabeca__titulo { flex-wrap: wrap; gap: 12px; }
+    .regua { display: none; }
+  }
+</style>

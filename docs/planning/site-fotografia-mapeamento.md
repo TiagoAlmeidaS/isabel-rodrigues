@@ -91,9 +91,16 @@ se a imagem ainda não carregou, o reveal espera. Tudo desligado em
 
 ### Implementação
 
-`animation-timeline: view()` para 02 e 04, transitions para 05/08/09, keyframes
-infinitos para 03 e 06. Fallback em `IntersectionObserver` onde `view()` não
-pegar. Nenhuma biblioteca — nem GSAP, nem Framer Motion.
+Implementado em `site/src/styles/global.css` e `site/src/layouts/Base.astro`:
+IntersectionObserver para 02 e 04, transitions para 05/08/09, keyframes
+infinitos para 03 e 06, `sessionStorage` para a 01. Nenhuma biblioteca — nem
+GSAP, nem Framer Motion.
+
+**Divergência do plano, registrada:** 02 e 04 iam usar `animation-timeline:
+view()` com IntersectionObserver de fallback. Ficaram só com o observer — um
+mecanismo que funciona em todo lugar vale mais que dois caminhos para o mesmo
+efeito. A 07 (cross-fade) não foi implementada: depende de escolher duas fotos
+para alternar, o que é decisão de acervo.
 
 ### Ordem de implementação
 
@@ -315,14 +322,34 @@ via `aws_cloudformation_stack`.
 Escrito, **não validado**: não havia binário do Terraform no ambiente onde foi
 gerado. O primeiro `terraform plan` é revisão, não formalidade.
 
+Um erro já apareceu ao construir o site e foi corrigido: o `custom_error_response`
+apontava para `/404/index.html`, mas o Astro gera `404.html` na raiz mesmo com
+`build.format = "directory"`.
+
+Além dos quatro módulos iniciais, existe `ci-identity`: provider OIDC do GitHub
+e papel de deploy restrito ao repositório e à branch, com permissão apenas de
+escrever no bucket do site e invalidar a distribuição.
+
 ---
 
-## 8. Como isso vira site
+## 8. O site
 
-1. Astro ou Next estático + Tailwind na Vercel. Sem CMS na v1.
-2. As fotos vêm da CDN (seção 5), nunca do repositório.
-3. Cada caixa cinza do protótipo vira uma foto real do acervo.
-4. Cada `[COLCHETE]` é um dado que falta.
+Construído em `site/`. **Astro estático, sem Tailwind** — o visual é CSS
+próprio com tokens em `src/styles/global.css`. A decisão veio do desenho: as
+motions são CSS escrito à mão e utilitário no meio só atrapalharia.
+
+Páginas: home, `/ensaios/<categoria>/` (uma por categoria, inclusive as
+ocultas), `/agendar/` e 404. Build validado: 7 páginas, `astro check` limpo.
+
+Conteúdo em `src/data/*.json`, lido só por `src/lib/conteudo.ts`. URLs de foto
+montadas por `src/lib/imagem.ts`. O painel é servido em `/admin`.
+
+Deploy por GitHub Actions em push na `main` que toque `site/`, assumindo por
+OIDC o papel criado em `infra/modules/ci-identity` — sem chave guardada em
+secret. Detalhes e variáveis a configurar: [`site/README.md`](../../site/README.md).
+
+Cada caixa cinza do protótipo vira uma foto real; cada `[COLCHETE]`, um dado
+que falta.
 
 ## 9. O que ainda falta decidir
 

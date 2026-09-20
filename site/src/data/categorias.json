@@ -1,0 +1,40 @@
+{
+  "categorias": [
+    {
+      "slug": "gestante",
+      "nome": "Gestante",
+      "chamada": "A partir da 28ª semana",
+      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA — quando fazer, quanto dura, o que levar.]",
+      "capa": "gestante/capa.jpg",
+      "visivel": true,
+      "ordem": 1
+    },
+    {
+      "slug": "newborn",
+      "nome": "Newborn",
+      "chamada": "Nos primeiros 15 dias",
+      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
+      "capa": "newborn/capa.jpg",
+      "visivel": true,
+      "ordem": 2
+    },
+    {
+      "slug": "familia",
+      "nome": "Família",
+      "chamada": "Em casa ou ao ar livre",
+      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
+      "capa": "familia/capa.jpg",
+      "visivel": true,
+      "ordem": 3
+    },
+    {
+      "slug": "smash-the-cake",
+      "nome": "Smash the cake",
+      "chamada": "O primeiro aniversário",
+      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
+      "capa": "smash-the-cake/capa.jpg",
+      "visivel": false,
+      "ordem": 4
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+---
+import Marca from './Marca.astro';
+interface Props { solida?: boolean; }
+const { solida = false } = Astro.props;
+---
+<header class:list={['nav', solida && 'solida']} data-nav>
+  <Marca />
+  <nav aria-label="Principal">
+    <a href="/ensaios/newborn/" class="filete">Ensaios</a>
+    <a href="/#sobre" class="filete">Sobre</a>
+    <a href="/#investimento" class="filete">Investimento</a>
+    <a href="/agendar/" class="botao botao--marca">Agendar ensaio</a>
+  </nav>
+</header>
+
+<style>
+  nav {
+    flex-grow: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 36px;
+  }
+  nav a { font-size: 14px; letter-spacing: 0.08em; color: var(--tinta); }
+  nav .botao { font-size: 14px; padding: 14px 26px; color: #fff; }
+
+  @media (max-width: 760px) {
+    nav a:not(.botao) { display: none; }
+  }
+</style>

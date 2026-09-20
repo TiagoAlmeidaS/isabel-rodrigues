@@ -1,0 +1,35 @@
+---
+import { contato } from '../lib/conteudo';
+const bloco = ['Isabel Rodrigues', contato.cidade, 'Fotografia de família'];
+---
+<div class="faixa-nome" aria-hidden="true">
+  <div class="faixa-nome__trilho">
+    {[0, 1].map(() => (
+      <div class="faixa-nome__bloco">
+        {bloco.map((texto, i) => (
+          <>
+            <span class={i === 1 ? 'menor' : 'maior'}>{texto}</span>
+            <span class="ponto">●</span>
+          </>
+        ))}
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .maior {
+    font-family: var(--display);
+    font-size: 30px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--areia);
+  }
+  .menor {
+    font-size: 14px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: #cfc5b7;
+  }
+  .ponto { color: var(--terracota); font-size: 18px; }
+</style>

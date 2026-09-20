@@ -27,3 +27,8 @@ output "cms_access_key_id" {
   description = "Access Key ID, se o Terraform a criou."
   value       = module.cms.access_key_id
 }
+
+output "deploy_role_arn" {
+  description = "Vai no secret AWS_DEPLOY_ROLE do repositório."
+  value       = module.ci.role_arn
+}

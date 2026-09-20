@@ -124,11 +124,11 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
-  # Astro é SPA-free, mas 404 precisa cair na página bonita.
+  # O Astro gera 404.html na raiz mesmo com build.format = "directory".
   custom_error_response {
     error_code            = 404
     response_code         = 404
-    response_page_path    = "/404/index.html"
+    response_page_path    = "/404.html"
     error_caching_min_ttl = 300
   }
 

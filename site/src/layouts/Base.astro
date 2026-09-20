@@ -1,0 +1,100 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Rodape from '../components/Rodape.astro';
+
+interface Props {
+  titulo: string;
+  descricao?: string;
+  navSolida?: boolean;
+}
+
+const {
+  titulo,
+  descricao = 'Fotografia de gestante, newborn e família.',
+  navSolida = false,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descricao} />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descricao} />
+    <meta property="og:type" content="website" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap"
+    />
+
+    <!-- A abertura de marca roda uma vez por sessão. Em head e inline para
+         não piscar: a classe precisa existir antes da primeira pintura. -->
+    <script is:inline>
+      try {
+        if (!sessionStorage.getItem('abertura-vista')) {
+          document.documentElement.classList.add('abertura');
+          sessionStorage.setItem('abertura-vista', '1');
+        }
+      } catch (e) {
+        /* navegação privada: sem abertura, sem drama */
+      }
+    </script>
+  </head>
+
+  <body>
+    <Nav solida={navSolida} />
+    <main>
+      <slot />
+    </main>
+    <Rodape />
+
+    <script>
+      const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const alvos = document.querySelectorAll('[data-reveal]');
+
+      if (reduzido || !('IntersectionObserver' in window)) {
+        alvos.forEach((a) => a.classList.add('em-cena'));
+      } else {
+        const observador = new IntersectionObserver(
+          (entradas) => {
+            entradas.forEach((entrada) => {
+              if (!entrada.isIntersecting) return;
+              entrada.target.classList.add('em-cena');
+              observador.unobserve(entrada.target);
+            });
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
+        );
+
+        // Escalona os irmãos de uma mesma grade: 120 ms entre eles.
+        document.querySelectorAll('[data-escalonar]').forEach((grupo) => {
+          grupo.querySelectorAll('[data-reveal]').forEach((item, i) => {
+            if (item instanceof HTMLElement) {
+              item.style.setProperty('--atraso', `${i * 120}ms`);
+            }
+          });
+        });
+
+        alvos.forEach((a) => observador.observe(a));
+      }
+
+      // Nav solidifica ao passar do hero.
+      const nav = document.querySelector('[data-nav]');
+      const fimDoHero = document.querySelector('[data-fim-hero]');
+
+      if (nav && fimDoHero) {
+        new IntersectionObserver(
+          ([entrada]) => nav.classList.toggle('solida', !entrada.isIntersecting),
+          { threshold: 0 },
+        ).observe(fimDoHero);
+      }
+    </script>
+  </body>
+</html>

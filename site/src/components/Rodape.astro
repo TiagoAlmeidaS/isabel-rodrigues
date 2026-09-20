@@ -1,0 +1,41 @@
+---
+import { contato, linkWhatsApp } from '../lib/conteudo';
+const ano = new Date().getFullYear();
+---
+<footer class="rodape container">
+  <div class="rodape__marca">
+    <span class="nome">Isabel Rodrigues</span>
+    <span class="cidade">Fotografia de família · {contato.cidade}</span>
+  </div>
+  <div>
+    <span class="rotulo">Contato</span>
+    <a class="filete" href={linkWhatsApp()}>{contato.whatsappExibicao}</a>
+    <a class="filete" href={`mailto:${contato.email}`}>{contato.email}</a>
+  </div>
+  <div>
+    <span class="rotulo">Social</span>
+    <a class="filete" href={`https://instagram.com/${contato.instagram.replace('@', '')}`} rel="me">Instagram</a>
+  </div>
+  <p class="creditos">© {ano} Isabel Rodrigues</p>
+</footer>
+
+<style>
+  .rodape {
+    display: flex;
+    align-items: flex-start;
+    gap: 80px;
+    flex-wrap: wrap;
+    padding-block: 70px 40px;
+  }
+  .rodape__marca { flex-grow: 1; }
+  .rodape div { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .nome {
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .cidade { font-size: 14px; color: var(--tinta-fraca); }
+  .rodape a { font-size: 15px; }
+  .creditos { width: 100%; margin: 0; font-size: 13px; color: var(--tinta-fraca); }
+</style>

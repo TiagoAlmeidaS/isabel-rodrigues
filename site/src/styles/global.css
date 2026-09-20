@@ -1,0 +1,228 @@
+/* Sistema visual — ver prancheta "Sistema visual" no protótipo. */
+
+:root {
+  --areia: #f7f4ef;
+  --areia-clara: #fcfaf7;
+  --faixa: #efe9e0;
+  --linha: #ddd4c8;
+  --tinta: #1c1a17;
+  --tinta-media: #3a352e;
+  --tinta-fraca: #5b544b;
+  --terracota: #a9674f;
+  --terracota-escuro: #8a4f3a;
+  --whatsapp: #0f7a3d;
+
+  --display: 'Cormorant Garamond', Georgia, serif;
+  --corpo: 'Jost', system-ui, -apple-system, sans-serif;
+
+  --saida: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --cortina: cubic-bezier(0.4, 0, 0.1, 1);
+
+  --gutter: 80px;
+}
+
+@media (max-width: 900px) {
+  :root { --gutter: 20px; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--areia);
+  color: var(--tinta);
+  font-family: var(--corpo);
+  font-size: 17px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 300;
+  line-height: 1.05;
+  margin: 0;
+}
+
+a { color: var(--terracota-escuro); text-decoration: none; }
+a:hover { color: #5f3526; }
+
+img { display: block; max-width: 100%; height: auto; }
+
+:focus-visible { outline: 2px solid var(--terracota-escuro); outline-offset: 3px; }
+
+.container { padding-inline: var(--gutter); }
+
+.rotulo {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+/* Botões ------------------------------------------------------------- */
+
+.botao {
+  display: inline-block;
+  min-height: 44px;
+  padding: 18px 34px;
+  border: 0;
+  border-radius: 2px;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.35s ease, transform 0.35s var(--saida);
+}
+.botao:hover { transform: translateY(-2px); }
+.botao--whatsapp { background: var(--whatsapp); color: #fff; }
+.botao--whatsapp:hover { background: #0c6532; color: #fff; }
+.botao--marca { background: var(--terracota-escuro); color: #fff; }
+.botao--marca:hover { background: #5f3526; color: #fff; }
+.botao--vazado { border: 1px solid currentColor; background: transparent; }
+
+/* 09 — filete do link ------------------------------------------------ */
+
+.filete { position: relative; display: inline-block; }
+.filete::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--saida);
+}
+.filete:hover::after { transform: scaleX(1); transform-origin: left; }
+
+/* Foto: moldura + 05 hover contido ----------------------------------- */
+
+.foto {
+  position: relative;
+  overflow: hidden;
+  background: var(--linha);
+}
+.foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.75s var(--saida);
+}
+.cartao:hover .foto img { transform: scale(1.045); }
+
+.cartao .legenda { transition: transform 0.5s var(--saida); }
+.cartao:hover .legenda { transform: translateY(-6px); }
+
+.cartao .risco {
+  display: block;
+  height: 1px;
+  background: var(--terracota-escuro);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--saida);
+}
+.cartao:hover .risco { transform: scaleX(1); }
+
+/* 04 — reveal escalonado (IntersectionObserver aplica .em-cena) ------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.95s var(--saida), transform 0.95s var(--saida);
+  transition-delay: var(--atraso, 0ms);
+}
+[data-reveal].em-cena { opacity: 1; transform: none; }
+
+/* 02 — cortina */
+
+[data-reveal='cortina'] {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(50% 0 50% 0);
+  transition: clip-path 1.2s var(--cortina);
+  transition-delay: var(--atraso, 0ms);
+}
+[data-reveal='cortina'].em-cena { clip-path: inset(0 0 0 0); }
+
+/* 03 — Ken Burns ----------------------------------------------------- */
+
+@keyframes kenburns {
+  from { transform: scale(1.001); }
+  to   { transform: scale(1.09); }
+}
+.kenburns img { animation: kenburns 16s ease-out both; }
+
+/* 01 — marca que sobe ------------------------------------------------ */
+
+@keyframes sobe {
+  from { transform: translateY(105%); }
+  to   { transform: translateY(0); }
+}
+.marca { display: flex; gap: 0.32em; overflow: hidden; }
+.marca > span { display: block; overflow: hidden; }
+.marca > span > span { display: block; }
+.abertura .marca > span > span {
+  animation: sobe 0.9s var(--cortina) both;
+}
+.abertura .marca > span:nth-child(2) > span { animation-delay: 0.16s; }
+
+/* 06 — faixa do nome ------------------------------------------------- */
+
+@keyframes correr {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.faixa-nome { overflow: hidden; background: var(--tinta); }
+.faixa-nome__trilho {
+  display: flex;
+  width: 200%;
+  animation: correr 34s linear infinite;
+}
+.faixa-nome__bloco {
+  display: flex;
+  align-items: center;
+  gap: 52px;
+  width: 50%;
+  flex-shrink: 0;
+  padding: 26px 26px 26px 0;
+  white-space: nowrap;
+}
+
+/* 08 — nav que solidifica -------------------------------------------- */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: 26px var(--gutter);
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 0.3s ease, border-color 0.3s ease, padding 0.3s ease;
+}
+.nav.solida {
+  background: rgba(247, 244, 239, 0.96);
+  backdrop-filter: blur(8px);
+  border-bottom-color: var(--linha);
+  padding-block: 18px;
+}
+
+/* Pausa geral --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+}

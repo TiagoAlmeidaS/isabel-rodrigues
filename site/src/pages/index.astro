@@ -1,0 +1,237 @@
+---
+import Base from '../layouts/Base.astro';
+import Foto from '../components/Foto.astro';
+import FaixaNome from '../components/FaixaNome.astro';
+import FaixaAgenda from '../components/FaixaAgenda.astro';
+import {
+  textos, categoriasVisiveis, capaDe, destaques, linkWhatsApp, agenda,
+} from '../lib/conteudo';
+
+const categorias = categoriasVisiveis();
+const selecao = destaques(5);
+const [primeiro, segundo, ...resto] = selecao;
+---
+
+<Base titulo="Isabel Rodrigues — Fotografia de família" descricao={textos.sobreTitulo}>
+  <!-- HERO -->
+  <section class="hero">
+    <Foto
+      arquivo={categorias[0] ? capaDe(categorias[0]) : ''}
+      alt="Ensaio de família em luz natural"
+      sizes="100vw"
+      reveal={false}
+      kenburns
+      prioridade
+      class="hero__foto"
+    />
+    <div class="hero__texto container">
+      <span class="rotulo">{textos.heroSuperior}</span>
+      <h1>{textos.heroTitulo}</h1>
+    </div>
+  </section>
+  <div data-fim-hero aria-hidden="true"></div>
+
+  <!-- SOBRE -->
+  <section id="sobre" class="sobre container">
+    <Foto
+      arquivo=""
+      alt="Retrato da Isabel"
+      sizes="(max-width: 900px) 100vw, 480px"
+      reveal="cortina"
+      altura="600px"
+      class="sobre__retrato"
+    />
+    <div class="sobre__texto">
+      <span class="rotulo rotulo--acento" data-reveal>{textos.sobreRotulo}</span>
+      <h2 data-reveal>{textos.sobreTitulo}</h2>
+      <p data-reveal>{textos.sobreParagrafo1}</p>
+      <p data-reveal>{textos.sobreParagrafo2}</p>
+      <a href={`/ensaios/${categorias[0]?.slug ?? 'newborn'}/`} class="filete link-secao" data-reveal>
+        Ver os ensaios
+      </a>
+    </div>
+  </section>
+
+  <!-- CATEGORIAS -->
+  <section class="secao container">
+    <header class="secao__cabeca">
+      <h2 data-reveal>Cada fase tem a sua luz</h2>
+      <span class="regua" aria-hidden="true"></span>
+      <span class="rotulo" data-reveal>{categorias.length} ensaios</span>
+    </header>
+
+    <div class="grade grade--4" data-escalonar>
+      {categorias.map((categoria) => (
+        <a href={`/ensaios/${categoria.slug}/`} class="cartao">
+          <Foto
+            arquivo={capaDe(categoria)}
+            alt={`Ensaio ${categoria.nome}`}
+            sizes="(max-width: 700px) 100vw, 25vw"
+            altura="420px"
+          />
+          <div class="legenda">
+            <span class="legenda__nome">{categoria.nome}</span>
+            <span class="legenda__chamada">{categoria.chamada}</span>
+            <span class="risco"></span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- ENSAIOS RECENTES -->
+  <section class="secao container">
+    <header class="secao__cabeca">
+      <h2 data-reveal>Ensaios recentes</h2>
+      <span class="regua" aria-hidden="true"></span>
+    </header>
+
+    <div class="destaque-duplo">
+      <Foto foto={primeiro} sizes="(max-width: 900px) 100vw, 66vw" altura="520px" reveal="cortina" class="cartao" />
+      <Foto foto={segundo} sizes="(max-width: 900px) 100vw, 33vw" altura="520px" reveal="cortina" atraso={160} class="cartao" />
+    </div>
+
+    <div class="grade grade--3" data-escalonar>
+      {resto.map((foto) => (
+        <Foto foto={foto} sizes="(max-width: 700px) 100vw, 33vw" altura="340px" class="cartao" />
+      ))}
+    </div>
+  </section>
+
+  <FaixaNome />
+
+  <!-- DEPOIMENTO -->
+  <section class="depoimento">
+    <span class="rotulo rotulo--acento" data-reveal>Quem já passou por aqui</span>
+    <blockquote data-reveal>“{textos.depoimento}”</blockquote>
+    <cite data-reveal>{textos.depoimentoAutor}</cite>
+  </section>
+
+  <!-- INVESTIMENTO — sem valores, por decisão -->
+  <section id="investimento" class="secao container">
+    <header class="secao__cabeca">
+      <h2 data-reveal>Investimento</h2>
+      <span class="regua" aria-hidden="true"></span>
+      <span class="rotulo" data-reveal>Sob consulta</span>
+    </header>
+
+    <p class="intro" data-reveal>{textos.investimentoIntro}</p>
+
+    <div class="grade grade--3" data-escalonar>
+      {textos.pacotes.map((pacote) => (
+        <article class:list={['pacote', pacote.destaque && 'pacote--destaque']} data-reveal>
+          <h3>{pacote.nome}</h3>
+          <ul>
+            {pacote.itens.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+      ))}
+    </div>
+
+    <div class="chamada-valores" data-reveal>
+      <span>Quer os valores de {agenda.mes}? Levo dois minutos pra responder.</span>
+      <a class="botao botao--whatsapp" href={linkWhatsApp()}>Receber a tabela</a>
+    </div>
+  </section>
+
+  <FaixaAgenda />
+</Base>
+
+<style>
+  .hero { position: relative; height: 88vh; min-height: 520px; }
+  .hero :global(.hero__foto) { position: absolute; inset: 0; height: 100%; }
+  .hero__texto {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .hero h1 { font-size: clamp(42px, 6.5vw, 84px); max-width: 14ch; }
+
+  .sobre {
+    display: flex;
+    gap: 90px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-block: 130px;
+  }
+  .sobre :global(.sobre__retrato) { width: 480px; flex-shrink: 0; }
+  .sobre__texto { flex: 1 1 420px; display: flex; flex-direction: column; gap: 24px; }
+  .sobre__texto h2 { font-size: clamp(32px, 4vw, 52px); }
+  .sobre__texto p { margin: 0; max-width: 56ch; color: var(--tinta-media); }
+
+  .rotulo--acento { color: var(--terracota-escuro); }
+  .link-secao {
+    align-self: flex-start;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .secao { padding-bottom: 130px; display: flex; flex-direction: column; gap: 44px; }
+  .secao__cabeca { display: flex; align-items: flex-end; gap: 40px; }
+  .secao__cabeca h2 { font-size: clamp(32px, 4vw, 52px); }
+  .regua { flex-grow: 1; height: 1px; background: var(--linha); margin-bottom: 16px; }
+
+  .grade { display: grid; gap: 24px; }
+  .grade--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .grade--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .destaque-duplo { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+
+  .cartao { display: flex; flex-direction: column; gap: 16px; color: var(--tinta); }
+  .legenda { display: flex; flex-direction: column; gap: 5px; }
+  .legenda__nome { font-family: var(--display); font-size: 28px; }
+  .legenda__chamada { font-size: 14px; color: var(--tinta-fraca); }
+
+  .depoimento {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    text-align: center;
+    padding: 110px max(var(--gutter), 12vw);
+    background: var(--faixa);
+    margin-bottom: 130px;
+  }
+  .depoimento blockquote {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(26px, 3.2vw, 40px);
+    line-height: 1.35;
+  }
+  .depoimento cite { font-style: normal; font-size: 14px; color: var(--tinta-fraca); }
+
+  .intro { margin: 0; max-width: 62ch; color: var(--tinta-media); }
+  .pacote { border: 1px solid var(--linha); background: var(--areia-clara); padding: 40px 36px; }
+  .pacote--destaque { border-color: var(--terracota-escuro); }
+  .pacote h3 { font-size: 30px; margin-bottom: 16px; }
+  .pacote ul { margin: 0; padding-left: 18px; color: var(--tinta-media); font-size: 15px; line-height: 1.9; }
+
+  .chamada-valores {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--linha);
+    padding-top: 32px;
+  }
+  .chamada-valores span { flex-grow: 1; color: var(--tinta-media); }
+
+  @media (max-width: 900px) {
+    .grade--4, .grade--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .destaque-duplo { grid-template-columns: 1fr; }
+    .sobre { padding-block: 70px; gap: 40px; }
+    .sobre :global(.sobre__retrato) { width: 100%; }
+    .secao { padding-bottom: 70px; }
+    .secao__cabeca { flex-wrap: wrap; gap: 16px; }
+    .regua { display: none; }
+    .depoimento { padding-block: 70px; margin-bottom: 70px; }
+  }
+
+  @media (max-width: 560px) {
+    .grade--4, .grade--3 { grid-template-columns: 1fr; }
+  }
+</style>

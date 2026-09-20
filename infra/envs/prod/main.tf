@@ -64,3 +64,18 @@ module "imagens" {
     Environment = var.environment
   }
 }
+
+module "ci" {
+  source = "../../modules/ci-identity"
+
+  role_name        = "${local.name_prefix}-deploy"
+  site_bucket_arn  = module.site.bucket_arn
+  distribution_arn = module.site.distribution_arn
+
+  subjects_permitidos = [
+    "repo:${var.github_repo}:ref:refs/heads/${var.github_branch}",
+  ]
+
+  criar_provider_oidc = var.criar_provider_oidc
+  provider_oidc_arn   = var.provider_oidc_arn
+}

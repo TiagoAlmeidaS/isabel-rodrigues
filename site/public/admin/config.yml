@@ -1,0 +1,129 @@
+# Painel da Isabel — Sveltia CMS.
+#
+# O conteúdo vira commit neste repositório; as fotos vão do navegador dela
+# direto pro S3 (SigV4, sem servidor no meio).
+#
+# A Secret Access Key NÃO fica aqui: ela digita uma vez no próprio painel.
+# O access_key_id pode ficar — sozinho ele não abre nada.
+
+backend:
+  name: github
+  repo: TiagoAlmeidaS/isabel-rodrigues
+  branch: main
+  # Sem isto o login do GitHub não fecha o ciclo em domínio próprio.
+  # Deploy do sveltia-cms-auth como Worker, ou outro provedor OAuth.
+  base_url: https://[SEU-AUTH].workers.dev
+
+media_libraries:
+  aws_s3:
+    access_key_id: '[ACCESS KEY ID DO USUARIO isabel-prod-cms]'
+    bucket: isabel-prod-fotos
+    region: sa-east-1
+    public_url: 'https://[DOMINIO DAS IMAGENS]'
+
+locale: pt
+
+collections:
+  - name: acervo
+    label: Fotos
+    files:
+      - name: fotos
+        label: Acervo de fotos
+        file: site/src/data/fotos.json
+        description: Envie as fotos e diga a que ensaio cada uma pertence.
+        fields:
+          - name: fotos
+            label: Fotos
+            widget: list
+            label_singular: foto
+            summary: '{{fields.arquivo}} — {{fields.categoria}}'
+            fields:
+              - { name: arquivo, label: Arquivo, widget: image }
+              - name: categoria
+                label: Ensaio
+                widget: select
+                options: [gestante, newborn, familia, smash-the-cake]
+              - name: descricao
+                label: Descrição
+                widget: string
+                hint: Para quem não enxerga a foto. Uma frase basta.
+              - { name: capa, label: É a capa do ensaio?, widget: boolean, default: false }
+              - name: cor
+                label: Cor de fundo
+                widget: string
+                required: false
+                hint: Cor dominante da foto, em hexadecimal. Aparece enquanto a imagem carrega.
+              - { name: ordem, label: Ordem, widget: number, required: false, value_type: int }
+
+  - name: ensaios
+    label: Ensaios
+    files:
+      - name: categorias
+        label: Categorias
+        file: site/src/data/categorias.json
+        fields:
+          - name: categorias
+            label: Categorias
+            widget: list
+            summary: '{{fields.nome}}'
+            fields:
+              - { name: nome, label: Nome, widget: string }
+              - name: slug
+                label: Endereço
+                widget: string
+                hint: Parte final da URL. Mudar isto quebra links já enviados.
+              - { name: chamada, label: Chamada curta, widget: string }
+              - { name: descricao, label: Descrição, widget: text }
+              - { name: capa, label: Capa (se nenhuma foto estiver marcada), widget: image, required: false }
+              - { name: visivel, label: Aparece no site?, widget: boolean, default: true }
+              - { name: ordem, label: Ordem na home, widget: number, value_type: int }
+
+  - name: conteudo
+    label: Conteúdo
+    files:
+      - name: textos
+        label: Textos da home
+        file: site/src/data/textos.json
+        fields:
+          - { name: heroSuperior, label: Linha acima do título, widget: string }
+          - { name: heroTitulo, label: Título da abertura, widget: string }
+          - { name: sobreRotulo, label: Rótulo do Sobre, widget: string }
+          - { name: sobreTitulo, label: Título do Sobre, widget: string }
+          - { name: sobreParagrafo1, label: Sobre — primeiro parágrafo, widget: text }
+          - { name: sobreParagrafo2, label: Sobre — segundo parágrafo, widget: text }
+          - { name: investimentoIntro, label: Texto do Investimento, widget: text }
+          - { name: depoimento, label: Depoimento, widget: text }
+          - { name: depoimentoAutor, label: Quem disse, widget: string }
+          - name: pacotes
+            label: Pacotes
+            widget: list
+            summary: '{{fields.nome}}'
+            fields:
+              - { name: nome, label: Nome, widget: string }
+              - { name: itens, label: O que inclui, widget: list, field: { name: item, label: Item, widget: string } }
+              - { name: destaque, label: Destacar?, widget: boolean, default: false }
+
+      - name: contato
+        label: Contato
+        file: site/src/data/contato.json
+        fields:
+          - name: whatsapp
+            label: WhatsApp (só números, com 55)
+            widget: string
+            pattern: ['^55\d{10,11}$', 'Use o formato 5561999999999']
+          - { name: whatsappExibicao, label: WhatsApp como aparece no site, widget: string }
+          - { name: email, label: E-mail, widget: string }
+          - { name: instagram, label: Instagram, widget: string }
+          - { name: cidade, label: Cidade de atendimento, widget: string }
+          - name: mensagemPadrao
+            label: Mensagem que o formulário monta
+            widget: text
+            hint: 'As chaves {nome}, {categoria} e {data} são preenchidas sozinhas.'
+
+      - name: agenda
+        label: Faixa de disponibilidade
+        file: site/src/data/agenda.json
+        fields:
+          - { name: mes, label: Mês, widget: string }
+          - { name: datasAbertas, label: Datas abertas, widget: number, value_type: int, min: 0 }
+          - { name: mostrarFaixa, label: Mostrar a faixa no site?, widget: boolean, default: true }

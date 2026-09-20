@@ -54,3 +54,26 @@ variable "image_solution_extra_parameters" {
   type        = map(string)
   default     = {}
 }
+
+variable "github_repo" {
+  description = "Repositório que publica o site, no formato dono/repo."
+  type        = string
+}
+
+variable "github_branch" {
+  description = "Branch que dispara o deploy."
+  type        = string
+  default     = "main"
+}
+
+variable "criar_provider_oidc" {
+  description = "false se a conta já tem o provider OIDC do GitHub."
+  type        = bool
+  default     = true
+}
+
+variable "provider_oidc_arn" {
+  description = "ARN do provider OIDC existente, quando criar_provider_oidc = false."
+  type        = string
+  default     = ""
+}

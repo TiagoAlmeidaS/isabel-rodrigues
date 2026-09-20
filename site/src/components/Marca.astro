@@ -1,0 +1,18 @@
+---
+interface Props { tamanho?: string; class?: string; }
+const { tamanho = '22px', class: classe = '' } = Astro.props;
+---
+<a href="/" class:list={['marca', classe]} style={`font-size:${tamanho}`} aria-label="Isabel Rodrigues, página inicial">
+  <span><span>Isabel</span></span>
+  <span><span>Rodrigues</span></span>
+</a>
+
+<style>
+  .marca {
+    font-family: var(--display);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--tinta);
+    line-height: 1.1;
+  }
+</style>

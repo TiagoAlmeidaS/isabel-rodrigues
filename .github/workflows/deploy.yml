@@ -1,0 +1,68 @@
+name: Publicar site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write   # necessário para o OIDC
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - run: npx astro check
+
+      - run: npm run build
+        env:
+          PUBLIC_IMG_BASE: ${{ vars.PUBLIC_IMG_BASE }}
+          SITE_URL: ${{ vars.SITE_URL }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # HTML curto, assets com hash no nome podem durar um ano.
+      - name: Enviar assets
+        run: |
+          aws s3 sync dist "s3://${{ vars.SITE_BUCKET }}" \
+            --delete \
+            --exclude '*.html' \
+            --cache-control 'public,max-age=31536000,immutable'
+
+      - name: Enviar HTML
+        run: |
+          aws s3 sync dist "s3://${{ vars.SITE_BUCKET }}" \
+            --delete \
+            --exclude '*' --include '*.html' \
+            --cache-control 'public,max-age=0,must-revalidate'
+
+      - name: Invalidar cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.DISTRIBUTION_ID }}" \
+            --paths '/*'

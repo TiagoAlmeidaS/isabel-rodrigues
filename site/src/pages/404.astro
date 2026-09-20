@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import { categoriasVisiveis } from '../lib/conteudo';
+const categorias = categoriasVisiveis();
+---
+<Base titulo="Página não encontrada — Isabel Rodrigues" navSolida>
+  <section class="erro container">
+    <h1>Essa página não existe</h1>
+    <p>Talvez o link tenha mudado de lugar. Os ensaios estão todos aqui:</p>
+    <nav class="lista">
+      {categorias.map((c) => (
+        <a href={`/ensaios/${c.slug}/`} class="filete">{c.nome}</a>
+      ))}
+    </nav>
+  </section>
+</Base>
+
+<style>
+  .erro {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    padding-block: 160px 90px;
+  }
+  .erro h1 { font-size: clamp(38px, 6vw, 68px); }
+  .erro p { margin: 0; color: var(--tinta-media); }
+  .lista { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 10px; }
+</style>

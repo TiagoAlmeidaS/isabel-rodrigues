@@ -1,0 +1,189 @@
+---
+import Base from '../layouts/Base.astro';
+import { categoriasVisiveis, contato } from '../lib/conteudo';
+
+const categorias = categoriasVisiveis();
+const periodos = ['Manhã', 'Tarde', 'Fim de tarde'];
+---
+
+<Base titulo="Agendar ensaio — Isabel Rodrigues" navSolida>
+  <div class="agendar container">
+    <form class="formulario" data-form>
+      <span class="rotulo rotulo--acento">Quatro campos, trinta segundos</span>
+      <h1>Vamos marcar o seu ensaio</h1>
+      <p class="intro">
+        Você preenche aqui, eu recebo tudo pronto no WhatsApp e respondo com as
+        datas disponíveis.
+      </p>
+
+      <fieldset>
+        <legend>1. Tipo de ensaio</legend>
+        <div class="pilulas">
+          {categorias.map((categoria, i) => (
+            <label class="pilula">
+              <input type="radio" name="categoria" value={categoria.nome} checked={i === 0} />
+              <span>{categoria.nome}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div class="linha">
+        <p class="campo">
+          <label for="data">2. Data prevista</label>
+          <input type="date" id="data" name="data" />
+        </p>
+        <fieldset class="campo">
+          <legend>3. Período</legend>
+          <div class="pilulas">
+            {periodos.map((periodo, i) => (
+              <label class="pilula">
+                <input type="radio" name="periodo" value={periodo} checked={i === 1} />
+                <span>{periodo}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="linha">
+        <p class="campo">
+          <label for="nome">4. Seu nome</label>
+          <input type="text" id="nome" name="nome" placeholder="Como posso te chamar" />
+        </p>
+        <p class="campo">
+          <label for="cidade">Cidade</label>
+          <input type="text" id="cidade" name="cidade" placeholder="Brasília, Lago Sul..." />
+        </p>
+      </div>
+
+      <a class="botao botao--whatsapp" href="#" data-enviar>Enviar no WhatsApp</a>
+
+      <p class="aviso">
+        Nada é enviado sem você ver antes. O botão só abre o WhatsApp com a
+        mensagem escrita — você confere e aperta enviar.
+      </p>
+    </form>
+
+    <aside class="previa">
+      <span class="rotulo">A mensagem que vai sair</span>
+      <div class="conversa">
+        <p class="balao" data-previa></p>
+      </div>
+    </aside>
+  </div>
+</Base>
+
+<script define:vars={{ numero: contato.whatsapp }}>
+  const form = document.querySelector('[data-form]');
+  const previa = document.querySelector('[data-previa]');
+  const botao = document.querySelector('[data-enviar]');
+
+  const MESES = [
+    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+  ];
+
+  function dataPorExtenso(iso) {
+    if (!iso) return 'ainda sem data definida';
+    const [ano, mes, dia] = iso.split('-').map(Number);
+    if (!ano || !mes || !dia) return iso;
+    return `${dia} de ${MESES[mes - 1]}`;
+  }
+
+  function montarMensagem() {
+    const dados = new FormData(form);
+    const nome = String(dados.get('nome') ?? '').trim() || '[seu nome]';
+    const cidade = String(dados.get('cidade') ?? '').trim();
+    const categoria = String(dados.get('categoria') ?? '');
+    const periodo = String(dados.get('periodo') ?? '').toLowerCase();
+
+    return [
+      `Oi, Isabel! Sou ${nome}.`,
+      `Quero agendar um ensaio ${categoria} para ${dataPorExtenso(String(dados.get('data') ?? ''))}, de preferência no período da ${periodo}.`,
+      cidade ? `Sou de ${cidade}.` : '',
+      'Vim pelo site. Tem horário?',
+    ].filter(Boolean).join('\n');
+  }
+
+  function atualizar() {
+    const mensagem = montarMensagem();
+    previa.textContent = mensagem;
+    botao.href = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+  }
+
+  form.addEventListener('input', atualizar);
+  form.addEventListener('change', atualizar);
+  form.addEventListener('submit', (evento) => evento.preventDefault());
+  atualizar();
+</script>
+
+<style>
+  .agendar { display: flex; gap: 80px; flex-wrap: wrap; padding-block: 130px 90px; }
+  .formulario { flex: 1 1 560px; display: flex; flex-direction: column; gap: 32px; }
+  .formulario h1 { font-size: clamp(38px, 5vw, 60px); }
+  .intro { margin: 0; max-width: 52ch; color: var(--tinta-media); }
+  .rotulo--acento { color: var(--terracota-escuro); }
+
+  fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+  legend, label {
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--tinta-fraca);
+    padding: 0;
+  }
+
+  .linha { display: flex; gap: 24px; flex-wrap: wrap; }
+  .campo { flex: 1 1 240px; display: flex; flex-direction: column; gap: 14px; margin: 0; }
+
+  input[type='text'], input[type='date'] {
+    height: 56px;
+    padding: 0 18px;
+    font-family: var(--corpo);
+    font-size: 16px;
+    color: var(--tinta);
+    background: var(--areia-clara);
+    border: 1px solid var(--linha);
+    border-radius: 3px;
+  }
+
+  .pilulas { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pilula {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 12px 24px;
+    border: 1px solid var(--linha);
+    border-radius: 999px;
+    font-size: 15px;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--tinta);
+    cursor: pointer;
+  }
+  .pilula input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .pilula:has(input:checked) { background: var(--tinta); border-color: var(--tinta); color: var(--areia); }
+  .pilula:has(input:focus-visible) { outline: 2px solid var(--terracota-escuro); outline-offset: 2px; }
+
+  .botao { align-self: stretch; text-align: center; color: #fff; }
+  .aviso { margin: 0; font-size: 14px; color: var(--tinta-fraca); }
+
+  .previa { flex: 1 1 320px; display: flex; flex-direction: column; gap: 18px; }
+  .conversa { background: #e9e3da; border: 1px solid var(--linha); border-radius: 4px; padding: 28px; }
+  .balao {
+    margin: 0 0 0 auto;
+    max-width: 400px;
+    background: #d6f0c8;
+    border-radius: 10px 10px 2px 10px;
+    padding: 16px 18px;
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+
+  @media (max-width: 900px) {
+    .agendar { gap: 40px; padding-block: 110px 60px; }
+  }
+</style>

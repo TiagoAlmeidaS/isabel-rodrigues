@@ -17,3 +17,6 @@ create_cms_access_key = false
 
 # FIXE a versão. Confira a URL da release na página da solução antes do apply.
 image_solution_template_url = "[URL DO TEMPLATE, VERSAO FIXA]"
+
+github_repo   = "TiagoAlmeidaS/isabel-rodrigues"
+github_branch = "main"

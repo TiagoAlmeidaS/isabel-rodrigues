@@ -1,0 +1,28 @@
+{
+  "heroSuperior": "Gestante · Newborn · Família · Brasília, DF",
+  "heroTitulo": "Os dias que passam rápido demais",
+  "sobreRotulo": "Prazer, sou a Isabel",
+  "sobreTitulo": "Fotografo o que você vai querer lembrar daqui a vinte anos",
+  "sobreParagrafo1": "[SEU TEXTO EM PRIMEIRA PESSOA — como você começou, por que gestante e newborn, como é estar num ensaio com você.]",
+  "sobreParagrafo2": "[SEGUNDO PARÁGRAFO — o que você entrega: quantas fotos, prazo de entrega, onde atende.]",
+  "investimentoIntro": "Cada ensaio é montado com a família, então prefiro conversar antes de falar de valor. Me diz o que você tem em mente e eu te mando a tabela completa no WhatsApp, no mesmo dia.",
+  "depoimento": "[DEPOIMENTO REAL DE UMA CLIENTE — duas ou três linhas, do jeito que ela escreveu no WhatsApp.]",
+  "depoimentoAutor": "[NOME] · ensaio [CATEGORIA], [MÊS/ANO]",
+  "pacotes": [
+    {
+      "nome": "Essencial",
+      "itens": ["Ensaio de [X h] em um cenário", "[X] fotos tratadas", "Galeria online pra baixar e compartilhar"],
+      "destaque": false
+    },
+    {
+      "nome": "Completo",
+      "itens": ["Ensaio de [X h] com troca de figurino", "[X] fotos tratadas", "Álbum impresso [formato]"],
+      "destaque": true
+    },
+    {
+      "nome": "Acompanhamento",
+      "itens": ["Gestante, newborn e 1º ano", "Três ensaios no mesmo pacote", "Condição especial pro conjunto"],
+      "destaque": false
+    }
+  ]
+}

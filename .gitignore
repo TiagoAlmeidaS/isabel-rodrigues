@@ -8,6 +8,12 @@ override.tf.json
 
 # O .terraform.lock.hcl DEVE ser versionado — é o que fixa a versão do provider.
 
+# Node / Astro
+node_modules/
+dist/
+.astro/
+
 # Nunca versionar
 *.tfvars.local
 .env
+.env.local

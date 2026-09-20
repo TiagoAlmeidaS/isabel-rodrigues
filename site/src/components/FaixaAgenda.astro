@@ -1,0 +1,26 @@
+---
+import { agenda, linkWhatsApp } from '../lib/conteudo';
+---
+{agenda.mostrarFaixa && (
+  <section class="agenda container">
+    <div>
+      <h2>Gostou do que viu?</h2>
+      <p>A agenda de {agenda.mes} tem {agenda.datasAbertas} {agenda.datasAbertas === 1 ? 'data aberta' : 'datas abertas'}.</p>
+    </div>
+    <a class="botao botao--whatsapp" href={linkWhatsApp()}>Agendar pelo WhatsApp</a>
+  </section>
+)}
+
+<style>
+  .agenda {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    padding-block: 60px;
+    background: var(--faixa);
+  }
+  .agenda div { flex-grow: 1; }
+  .agenda h2 { font-size: 36px; margin-bottom: 6px; }
+  .agenda p { margin: 0; font-size: 16px; color: var(--tinta-media); }
+</style>

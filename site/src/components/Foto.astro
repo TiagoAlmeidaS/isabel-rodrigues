@@ -1,0 +1,75 @@
+---
+import { srcSet, urlImagem } from '../lib/imagem';
+import type { Foto } from '../lib/conteudo';
+
+interface Props {
+  foto?: Foto;
+  arquivo?: string;
+  alt?: string;
+  /** Valor do atributo sizes. Sem ele o navegador assume 100vw e baixa demais. */
+  sizes?: string;
+  proporcao?: string;
+  altura?: string;
+  reveal?: 'subir' | 'cortina' | false;
+  atraso?: number;
+  kenburns?: boolean;
+  prioridade?: boolean;
+  class?: string;
+}
+
+const {
+  foto,
+  arquivo = foto?.arquivo ?? '',
+  alt = foto?.descricao ?? '',
+  sizes = '100vw',
+  proporcao,
+  altura,
+  reveal = 'subir',
+  atraso = 0,
+  kenburns = false,
+  prioridade = false,
+  class: classe = '',
+} = Astro.props;
+
+const cor = foto?.cor ?? '#ddd4c8';
+const vazio = !arquivo;
+const estilo = [
+  `background:${cor}`,
+  proporcao ? `aspect-ratio:${proporcao}` : '',
+  altura ? `height:${altura}` : '',
+  atraso ? `--atraso:${atraso}ms` : '',
+].filter(Boolean).join(';');
+---
+
+<figure
+  class:list={['foto', kenburns && 'kenburns', classe]}
+  style={estilo}
+  data-reveal={reveal === false ? undefined : reveal === 'cortina' ? 'cortina' : ''}
+>
+  {vazio ? (
+    <span class="foto__falta rotulo">[ FOTO ]</span>
+  ) : (
+    <img
+      src={urlImagem(arquivo, 1280)}
+      srcset={srcSet(arquivo)}
+      sizes={sizes}
+      alt={alt}
+      loading={prioridade ? 'eager' : 'lazy'}
+      decoding={prioridade ? 'sync' : 'async'}
+      fetchpriority={prioridade ? 'high' : 'auto'}
+    />
+  )}
+</figure>
+
+<style>
+  .foto { margin: 0; }
+  .foto__falta {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--tinta-fraca);
+  }
+</style>
