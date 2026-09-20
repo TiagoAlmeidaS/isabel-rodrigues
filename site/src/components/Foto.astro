@@ -1,5 +1,5 @@
 ---
-import { srcSet, urlImagem } from '../lib/imagem';
+import { srcSet, urlImagem, FORMATOS, TIPO_MIME } from '../lib/imagem';
 import type { Foto } from '../lib/conteudo';
 
 interface Props {
@@ -49,20 +49,26 @@ const estilo = [
   {vazio ? (
     <span class="foto__falta rotulo">[ FOTO ]</span>
   ) : (
-    <img
-      src={urlImagem(arquivo, 1280)}
-      srcset={srcSet(arquivo)}
-      sizes={sizes}
-      alt={alt}
-      loading={prioridade ? 'eager' : 'lazy'}
-      decoding={prioridade ? 'sync' : 'async'}
-      fetchpriority={prioridade ? 'high' : 'auto'}
-    />
+    <picture>
+      {FORMATOS.filter((f) => f !== 'jpeg').map((formato) => (
+        <source type={TIPO_MIME[formato]} srcset={srcSet(arquivo, formato)} sizes={sizes} />
+      ))}
+      <img
+        src={urlImagem(arquivo, 1280, 'jpeg')}
+        srcset={srcSet(arquivo, 'jpeg')}
+        sizes={sizes}
+        alt={alt}
+        loading={prioridade ? 'eager' : 'lazy'}
+        decoding={prioridade ? 'sync' : 'async'}
+        fetchpriority={prioridade ? 'high' : 'auto'}
+      />
+    </picture>
   )}
 </figure>
 
 <style>
   .foto { margin: 0; }
+  .foto picture { display: contents; }
   .foto__falta {
     position: absolute;
     inset: 0;

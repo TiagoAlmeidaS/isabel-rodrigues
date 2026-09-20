@@ -82,13 +82,17 @@ module "imagens" {
   stack_name   = "${local.name_prefix}-imagens"
   template_url = var.image_solution_template_url
 
-  # CONFIRA os nomes destes parâmetros contra a versão fixada acima antes do
-  # primeiro apply — eles mudam entre releases da solução.
+  # Nomes conferidos no template publicado da v8.1.1 (todos terminam em
+  # "Parameter" — o CDK não sobrescreve o logical id).
   parameters = merge(
     {
-      SourceBuckets = module.fotos.bucket_id
-      CorsEnabled   = "Yes"
-      CorsOrigin    = "https://${var.domain_name}"
+      SourceBucketsParameter        = module.fotos.bucket_id
+      CorsEnabledParameter          = "Yes"
+      CorsOriginParameter           = "https://${var.domain_name}"
+      DeployDemoUIParameter         = "No"
+      AutoWebPParameter             = "No"
+      CloudFrontPriceClassParameter = "PriceClass_200"
+      LogRetentionPeriodParameter   = "30"
     },
     var.image_solution_extra_parameters,
   )

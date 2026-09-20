@@ -105,14 +105,6 @@ resource "aws_cloudfront_function" "rewrite" {
   code    = file("${path.module}/rewrite.js")
 }
 
-resource "aws_cloudfront_function" "normaliza_accept" {
-  name    = "accept-${var.name_prefix}"
-  runtime = "cloudfront-js-2.0"
-  comment = "Normaliza o Accept em avif/webp/jpeg antes do cache"
-  publish = true
-  code    = file("${path.module}/normaliza-accept.js")
-}
-
 # As fotos entram no mesmo domínio do site, por /fit-in/*. Evita um segundo
 # certificado, um segundo domínio e o preconnect extra — e dispensa alias na
 # distribuição criada pela stack de imagem, que não controlamos.
@@ -128,12 +120,10 @@ resource "aws_cloudfront_cache_policy" "imagens" {
     enable_accept_encoding_gzip   = false
     enable_accept_encoding_brotli = false
 
+    # O formato vai na própria URL (filters:format), então nenhum cabeçalho
+    # entra na chave: cada variante é um caminho distinto e imutável.
     headers_config {
-      header_behavior = "whitelist"
-      headers {
-        # Já normalizado pela function acima: no máximo três valores.
-        items = ["Accept"]
-      }
+      header_behavior = "none"
     }
 
     cookies_config {
@@ -251,11 +241,6 @@ resource "aws_cloudfront_distribution" "site" {
       compress               = false # AVIF/WebP/JPEG já vêm comprimidos
 
       cache_policy_id = aws_cloudfront_cache_policy.imagens[0].id
-
-      function_association {
-        event_type   = "viewer-request"
-        function_arn = aws_cloudfront_function.normaliza_accept.arn
-      }
     }
   }
 

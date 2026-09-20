@@ -17,8 +17,10 @@ extra_cms_origins = ["http://localhost:4321"]
 # Chave do CMS criada no console, fora do state.
 create_cms_access_key = false
 
-# FIXE a versão. Confira a URL da release na página da solução antes do apply.
-image_solution_template_url = "[URL DO TEMPLATE, VERSAO FIXA]"
+# Solução Dynamic Image Transformation for CloudFront, arquitetura Lambda.
+# Versão fixada: v8.1.1 (10/09/2026). Nomes dos parâmetros conferidos neste
+# template — todos terminam em "Parameter".
+image_solution_template_url = "https://solutions-reference.s3.amazonaws.com/dynamic-image-transformation-for-amazon-cloudfront/v8.1.1/dynamic-image-transformation-for-amazon-cloudfront-lambda.template"
 
 github_repo   = "TiagoAlmeidaS/isabel-rodrigues"
 github_branch = "main"

@@ -173,15 +173,22 @@ stack de imagem. Isso evita um segundo certificado, um segundo domínio e o
 preconnect extra — e dispensa configurar alias na distribuição criada pela
 stack, que não controlamos.
 
-O formato **não vai na URL**. Uma CloudFront Function no comportamento
-`/fit-in/*` reescreve o `Accept` do navegador para um de três valores —
-`image/avif`, `image/webp`, `image/jpeg` — **antes da consulta ao cache**, e a
-cache policy usa esse cabeçalho na chave. Resultado: três variantes por
-largura, não uma por navegador.
+O formato **vai na URL**, e quem escolhe é o navegador, via `<picture>`:
 
-Ressalva honesta: a conversão em si é feita pela Lambda da solução da AWS. Se a
-versão fixada só souber WebP, o resultado é WebP e JPEG — a normalização
-continua correta, só o AVIF não aparece. Confirmar na versão escolhida.
+```
+/fit-in/960x0/filters:format(avif)/filters:quality(55)/newborn/helena-03.jpg
+```
+
+**Correção de rota, registrada.** O desenho anterior negociava pelo cabeçalho
+`Accept`, com uma CloudFront Function normalizando em avif/webp/jpeg. Ao ler o
+código da solução (`source/image-handler/image-request.ts`), ficou claro que
+ela só converte automaticamente para **WebP** — `AUTO_WEBP === "Yes" &&
+accept.includes("image/webp")`. Nunca AVIF. A função teria reescrito o `Accept`
+para `image/avif`, a solução não reconheceria, e o site entregaria **JPEG
+original** para os navegadores mais modernos: o oposto do pretendido.
+
+Com o formato explícito: o AVIF existe de verdade, nenhum cabeçalho entra na
+chave de cache, e a CloudFront Function desaparece. Menos peça, mais resultado.
 
 ### Larguras fixas
 
@@ -203,8 +210,8 @@ uma vez na vida e cacheadas por um ano.
 | Route 53 | Zona de `isabelrodrigues.com.br`, criada pelo Terraform |
 | S3 | Bucket `isabel-prod-fotos`, privado, versionamento ligado |
 | CloudFront | Distribuição + OAC apontando pro bucket |
-| Lambda | Solução oficial *Dynamic Image Transformation for CloudFront*, arquitetura Lambda (até 6 MB) — uma stack CloudFormation, não código nosso |
-| CloudFront Function | Duas: URLs limpas no site e normalização do `Accept` em `/fit-in/*` |
+| Lambda | Solução oficial *Dynamic Image Transformation for CloudFront*, **v8.1.1**, arquitetura Lambda (até 6 MB) — uma stack CloudFormation, não código nosso |
+| CloudFront Function | URLs limpas no site (a de normalização do `Accept` foi removida) |
 | IAM | Usuário `isabel-cms`: Get/Put/Delete/List **só nesse bucket** |
 | CORS | GET, PUT, DELETE, HEAD liberados pro domínio do site (o SigV4 dispara preflight) |
 
@@ -349,9 +356,10 @@ via `aws_cloudformation_stack`.
 
 1. `image_solution_template_url` precisa apontar para uma **versão fixa** do
    template, nunca `latest`.
-2. Os **nomes dos parâmetros** da stack mudam entre releases — conferir contra
-   a versão fixada. Por isso `parameters` é um mapa aberto, definido no
-   ambiente.
+2. Os **nomes dos parâmetros** da stack mudam entre releases. Conferidos no
+   template publicado da v8.1.1: todos terminam em `Parameter`
+   (`SourceBucketsParameter`, `CorsEnabledParameter`, …). A primeira versão
+   deste código usava os nomes sem sufixo e teria falhado no apply.
 
 ### Estado atual do código
 
@@ -393,7 +401,6 @@ que falta.
 - O que está incluso em cada pacote (os valores ficam fora do site, por decisão).
 - Se Isabel aceita ter uma conta do GitHub para acessar o painel.
 - Quem é o dono da conta AWS (ela ou você) — muda quem paga e quem recebe alerta de billing.
-- A versão do template da solução de imagem a fixar (último `[COLCHETE]` do tfvars).
 - Criar o OAuth App do GitHub e guardar o client secret no Parameter Store.
 - Depoimentos reais autorizados.
 - Se entra "Smash the cake" ou se a quarta categoria é corporativo/eventos.
