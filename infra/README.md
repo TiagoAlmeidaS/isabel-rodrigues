@@ -18,20 +18,40 @@ infra/
 
 ## Primeira subida
 
+O domínio é `isabelrodrigues.com.br`, registrado no Registro.br. A zona do
+Route 53 é criada aqui, mas a **delegação é manual** — e o certificado ACM só
+valida depois dela. Por isso a ordem abaixo tem uma parada no meio.
+
 ```bash
 # 1. state (uma vez na vida, state local)
 cd infra/bootstrap
 terraform init && terraform apply
 
-# 2. preencha os [COLCHETES]
+# 2. preencha o [COLCHETE] que sobrou (versão do template de imagem)
 $EDITOR infra/envs/prod/terraform.tfvars
 
-# 3. production
+# 3. cria só a zona e pega os nameservers
 cd ../envs/prod
 terraform init
+terraform apply -target=aws_route53_zone.principal
+terraform output nameservers
+
+# 4. PARADA: cole esses nameservers no Registro.br e espere propagar.
+#    Sem isso o passo 5 fica preso validando o certificado.
+
+# 5. o resto
 terraform plan -out=tfplan   # leia o plano
 terraform apply tfplan
 ```
+
+### Segundo apply, por causa das imagens
+
+A distribuição do site serve as fotos em `/fit-in/*` apontando para a
+distribuição criada pela stack de imagem. Essa URL só existe depois que a
+stack sobe, então o primeiro apply cria o site **sem** esse caminho e o
+segundo o adiciona. É de propósito: a alternativa seria uma dependência
+circular. Confira também `imagens_output_key` — o nome do output muda entre
+versões do template.
 
 ## Antes do primeiro apply, confira duas coisas
 

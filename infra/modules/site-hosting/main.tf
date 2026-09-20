@@ -13,7 +13,15 @@ terraform {
 }
 
 locals {
-  s3_origin_id = "s3-${var.bucket_name}"
+  s3_origin_id       = "s3-${var.bucket_name}"
+  imagens_origin_id  = "imagens-${var.bucket_name}"
+
+  # A stack de imagem devolve uma URL com esquema; a origem quer só o host.
+  imagens_origin_domain = replace(replace(var.imagens_origin_url, "https://", ""), "/", "")
+
+  # Sem a URL da stack, o comportamento simplesmente não é criado: o site
+  # sobe do mesmo jeito e as fotos entram no apply seguinte.
+  serve_imagens = var.imagens_origin_url != ""
 }
 
 resource "aws_s3_bucket" "site" {
@@ -94,6 +102,47 @@ resource "aws_cloudfront_function" "rewrite" {
   code    = file("${path.module}/rewrite.js")
 }
 
+resource "aws_cloudfront_function" "normaliza_accept" {
+  name    = "accept-${var.name_prefix}"
+  runtime = "cloudfront-js-2.0"
+  comment = "Normaliza o Accept em avif/webp/jpeg antes do cache"
+  publish = true
+  code    = file("${path.module}/normaliza-accept.js")
+}
+
+# As fotos entram no mesmo domínio do site, por /fit-in/*. Evita um segundo
+# certificado, um segundo domínio e o preconnect extra — e dispensa alias na
+# distribuição criada pela stack de imagem, que não controlamos.
+resource "aws_cloudfront_cache_policy" "imagens" {
+  count = local.serve_imagens ? 1 : 0
+
+  name        = "imagens-${var.name_prefix}"
+  min_ttl     = 0
+  default_ttl = 31536000
+  max_ttl     = 31536000
+
+  parameters_in_cache_key_and_forwarded_to_origin {
+    enable_accept_encoding_gzip   = false
+    enable_accept_encoding_brotli = false
+
+    headers_config {
+      header_behavior = "whitelist"
+      headers {
+        # Já normalizado pela function acima: no máximo três valores.
+        items = ["Accept"]
+      }
+    }
+
+    cookies_config {
+      cookie_behavior = "none"
+    }
+
+    query_strings_config {
+      query_string_behavior = "none"
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "site" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -106,6 +155,42 @@ resource "aws_cloudfront_distribution" "site" {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
     origin_id                = local.s3_origin_id
     origin_access_control_id = aws_cloudfront_origin_access_control.site.id
+  }
+
+  dynamic "origin" {
+    for_each = local.serve_imagens ? [1] : []
+
+    content {
+      domain_name = local.imagens_origin_domain
+      origin_id   = local.imagens_origin_id
+
+      custom_origin_config {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "https-only"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
+    }
+  }
+
+  dynamic "ordered_cache_behavior" {
+    for_each = local.serve_imagens ? [1] : []
+
+    content {
+      path_pattern           = "/fit-in/*"
+      target_origin_id       = local.imagens_origin_id
+      viewer_protocol_policy = "redirect-to-https"
+      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+      cached_methods         = ["GET", "HEAD"]
+      compress               = false # AVIF/WebP/JPEG já vêm comprimidos
+
+      cache_policy_id = aws_cloudfront_cache_policy.imagens[0].id
+
+      function_association {
+        event_type   = "viewer-request"
+        function_arn = aws_cloudfront_function.normaliza_accept.arn
+      }
+    }
   }
 
   default_cache_behavior {

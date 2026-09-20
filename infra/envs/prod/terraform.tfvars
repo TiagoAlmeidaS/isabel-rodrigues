@@ -1,13 +1,15 @@
 # Production.
-# Os [COLCHETES] são o que falta decidir antes do primeiro apply.
 
 project     = "isabel"
 environment = "prod"
 region      = "sa-east-1"
 
-domain_name               = "[DOMINIO]"
-subject_alternative_names = ["www.[DOMINIO]"]
-hosted_zone_id            = "[ID DA ZONA NO ROUTE 53]"
+domain_name               = "isabelrodrigues.com.br"
+subject_alternative_names = ["www.isabelrodrigues.com.br"]
+
+# A zona é criada por este Terraform; os nameservers saem no output.
+criar_zona     = true
+hosted_zone_id = ""
 
 # Endereço do dev local, para o painel funcionar antes do site existir.
 extra_cms_origins = ["http://localhost:4321"]

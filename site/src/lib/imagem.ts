@@ -19,14 +19,21 @@ export const LARGURAS = [400, 800, 1280, 2000] as const;
  */
 export function chave(valor: string): string {
   if (!valor) return '';
+
+  let caminho = valor;
   if (/^https?:\/\//i.test(valor)) {
     try {
-      return new URL(valor).pathname.replace(/^\//, '');
+      caminho = new URL(valor).pathname;
     } catch {
-      return valor.replace(/^\//, '');
+      /* não era URL de verdade: segue como caminho */
     }
   }
-  return valor.replace(/^\//, '');
+
+  return caminho
+    .replace(/^\//, '')
+    // O painel grava a URL de pré-visualização, que já carrega a
+    // transformação. Sem tirar isto, viraria /fit-in/960x0/fit-in/1280x0/...
+    .replace(/^fit-in\/\d+x\d+\//, '');
 }
 
 export function urlImagem(valor: string, largura: number): string {

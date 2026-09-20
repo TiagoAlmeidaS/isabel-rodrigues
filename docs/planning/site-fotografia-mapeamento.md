@@ -152,17 +152,36 @@ As fotos **não ficam no repositório**. Decisão: **S3 + CloudFront + Lambda**.
 4. **CloudFront serve e guarda** com TTL de um ano. Da segunda visita em diante
    a Lambda nem acorda.
 
+### Domínio
+
+**`isabelrodrigues.com.br`**, registrado no Registro.br. A zona do Route 53 é
+criada pelo próprio Terraform (`criar_zona = true`) e o output `nameservers`
+traz os servidores para colar no painel do Registro.br. **Enquanto a
+delegação não for feita, a validação do certificado ACM fica esperando** — é o
+passo manual que trava o primeiro apply.
+
 ### Contrato de URL
 
 ```
-no bucket:  s3://isabel-fotos/newborn/helena-03.jpg
-o site pede: img.isabelrodrigues.com.br/fit-in/960x0/newborn/helena-03.jpg
+no bucket:   s3://isabel-prod-fotos/newborn/helena-03.jpg
+o site pede: isabelrodrigues.com.br/fit-in/960x0/newborn/helena-03.jpg
 ```
 
-O formato **não vai na URL**. Uma CloudFront Function lê o `Accept` do
-navegador e normaliza em três valores — `avif`, `webp`, `jpeg` — que entram na
-chave de cache. Cada largura tem no máximo três versões guardadas e o navegador
-recebe a melhor que aceita, sem nada no HTML.
+As fotos entram **pelo mesmo domínio do site**, no caminho `/fit-in/*`: a
+distribuição do site tem uma segunda origem apontando para a distribuição da
+stack de imagem. Isso evita um segundo certificado, um segundo domínio e o
+preconnect extra — e dispensa configurar alias na distribuição criada pela
+stack, que não controlamos.
+
+O formato **não vai na URL**. Uma CloudFront Function no comportamento
+`/fit-in/*` reescreve o `Accept` do navegador para um de três valores —
+`image/avif`, `image/webp`, `image/jpeg` — **antes da consulta ao cache**, e a
+cache policy usa esse cabeçalho na chave. Resultado: três variantes por
+largura, não uma por navegador.
+
+Ressalva honesta: a conversão em si é feita pela Lambda da solução da AWS. Se a
+versão fixada só souber WebP, o resultado é WebP e JPEG — a normalização
+continua correta, só o AVIF não aparece. Confirmar na versão escolhida.
 
 ### Larguras fixas
 
@@ -181,10 +200,11 @@ uma vez na vida e cacheadas por um ano.
 
 | Recurso | O quê |
 |---|---|
-| S3 | Bucket `isabel-fotos`, privado, versionamento ligado |
+| Route 53 | Zona de `isabelrodrigues.com.br`, criada pelo Terraform |
+| S3 | Bucket `isabel-prod-fotos`, privado, versionamento ligado |
 | CloudFront | Distribuição + OAC apontando pro bucket |
 | Lambda | Solução oficial *Dynamic Image Transformation for CloudFront*, arquitetura Lambda (até 6 MB) — uma stack CloudFormation, não código nosso |
-| CloudFront Function | Normaliza o `Accept` em avif/webp/jpeg |
+| CloudFront Function | Duas: URLs limpas no site e normalização do `Accept` em `/fit-in/*` |
 | IAM | Usuário `isabel-cms`: Get/Put/Delete/List **só nesse bucket** |
 | CORS | GET, PUT, DELETE, HEAD liberados pro domínio do site (o SigV4 dispara preflight) |
 
@@ -357,7 +377,7 @@ que falta.
 - O que está incluso em cada pacote (os valores ficam fora do site, por decisão).
 - Se Isabel aceita ter uma conta do GitHub para acessar o painel.
 - Quem é o dono da conta AWS (ela ou você) — muda quem paga e quem recebe alerta de billing.
-- O domínio e o ID da zona no Route 53 (`[COLCHETES]` em `infra/envs/prod/terraform.tfvars`).
-- A versão do template da solução de imagem a fixar.
+- A versão do template da solução de imagem a fixar (último `[COLCHETE]` do tfvars).
+- Publicar o Worker de autenticação do painel em `auth.isabelrodrigues.com.br`.
 - Depoimentos reais autorizados.
 - Se entra "Smash the cake" ou se a quarta categoria é corporativo/eventos.

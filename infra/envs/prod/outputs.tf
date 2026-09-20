@@ -32,3 +32,8 @@ output "deploy_role_arn" {
   description = "Vai no secret AWS_DEPLOY_ROLE do repositório."
   value       = module.ci.role_arn
 }
+
+output "nameservers" {
+  description = "Cole estes servidores no Registro.br. Sem isso o domínio não resolve e o certificado não valida."
+  value       = var.criar_zona ? aws_route53_zone.principal[0].name_servers : []
+}

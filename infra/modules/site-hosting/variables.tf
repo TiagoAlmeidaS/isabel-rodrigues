@@ -29,3 +29,9 @@ variable "price_class" {
   type        = string
   default     = "PriceClass_200"
 }
+
+variable "imagens_origin_url" {
+  description = "URL da distribuição criada pela stack de imagem. Vazio = o site sobe sem o caminho /fit-in/*."
+  type        = string
+  default     = ""
+}

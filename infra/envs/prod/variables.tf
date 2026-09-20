@@ -27,9 +27,22 @@ variable "subject_alternative_names" {
   default     = []
 }
 
+variable "criar_zona" {
+  description = "true cria a zona no Route 53. false usa uma existente via hosted_zone_id."
+  type        = bool
+  default     = true
+}
+
 variable "hosted_zone_id" {
-  description = "Zona do Route 53 do domínio."
+  description = "Zona existente, quando criar_zona = false."
   type        = string
+  default     = ""
+}
+
+variable "imagens_output_key" {
+  description = "Nome do output da stack de imagem que traz a URL da distribuição. CONFIRA contra a versão fixada do template."
+  type        = string
+  default     = "ApiEndpoint"
 }
 
 variable "extra_cms_origins" {

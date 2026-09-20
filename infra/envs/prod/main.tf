@@ -1,5 +1,15 @@
+# A zona nasce aqui. Os nameservers que ela devolve precisam ser colados no
+# Registro.br — até isso acontecer, a validação do certificado fica esperando.
+resource "aws_route53_zone" "principal" {
+  count = var.criar_zona ? 1 : 0
+  name  = var.domain_name
+
+  comment = "Gerenciada pelo Terraform — ${var.project}/${var.environment}"
+}
+
 locals {
   name_prefix = "${var.project}-${var.environment}"
+  zone_id     = var.criar_zona ? aws_route53_zone.principal[0].zone_id : var.hosted_zone_id
 
   # O /admin roda no próprio site, então é dali que vêm os uploads.
   cms_origins = concat(
@@ -39,7 +49,10 @@ module "site" {
   bucket_name               = "${local.name_prefix}-site"
   domain_name               = var.domain_name
   subject_alternative_names = var.subject_alternative_names
-  hosted_zone_id            = var.hosted_zone_id
+  hosted_zone_id            = local.zone_id
+
+  # Vem da stack de imagem; vazio no primeiro apply, preenchido no seguinte.
+  imagens_origin_url = lookup(module.imagens.stack_outputs, var.imagens_output_key, "")
 }
 
 module "imagens" {

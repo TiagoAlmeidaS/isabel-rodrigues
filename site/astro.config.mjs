@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: process.env.SITE_URL ?? 'https://exemplo.com.br',
+  site: process.env.SITE_URL ?? 'https://isabelrodrigues.com.br',
   // Estático puro: o build vira arquivos no S3, servidos pelo CloudFront.
   output: 'static',
   build: {
