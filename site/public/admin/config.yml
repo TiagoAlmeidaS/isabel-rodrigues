@@ -20,6 +20,12 @@ media_libraries:
     access_key_id: 'AKIA2FIWVTW225YMZLZZ'
     bucket: isabel-prod-fotos
     region: sa-east-1
+    # Sem isto o Sveltia manda 'x-amz-acl: public-read' em todo upload, e o
+    # bucket recusa com AccessControlListNotSupported: ele usa
+    # BucketOwnerEnforced, que desativa ACLs — a configuração recomendada
+    # pela AWS desde 2023. Nada aqui precisa de ACL: o dono do bucket já é
+    # dono dos objetos, e quem serve as fotos é o CloudFront.
+    acl: false
     # Pré-visualização dentro do painel. O site remonta a URL por conta
     # própria; o prefixo de transformação é removido em src/lib/imagem.ts.
     public_url: 'https://isabelrodrigues.com.br/fit-in/1280x0'
