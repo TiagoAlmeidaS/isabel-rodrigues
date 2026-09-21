@@ -113,3 +113,18 @@ resource "aws_lambda_function_url" "auth" {
   # conferência de origem e a lista de domínios — não a rede.
   authorization_type = "NONE"
 }
+
+# authorization_type = "NONE" sozinho NÃO libera a chamada: a Function URL
+# exige, além disso, uma permissão no resource policy da função. Sem ela a
+# AWS responde 403 antes de invocar o código — nem log aparece.
+#
+# Declarada aqui de propósito, em vez de contar com o que o provider cria
+# junto da Function URL: assim o state conhece a permissão e o plano avisa
+# se ela sumir.
+resource "aws_lambda_permission" "url_publica" {
+  statement_id           = "FunctionURLAllowPublicAccess"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.auth.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
