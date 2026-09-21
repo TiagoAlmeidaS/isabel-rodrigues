@@ -17,7 +17,7 @@ backend:
 
 media_libraries:
   aws_s3:
-    access_key_id: '[ACCESS KEY ID DO USUARIO isabel-prod-cms]'
+    access_key_id: 'AKIA2FIWVTW225YMZLZZ'
     bucket: isabel-prod-fotos
     region: sa-east-1
     # Pré-visualização dentro do painel. O site remonta a URL por conta
