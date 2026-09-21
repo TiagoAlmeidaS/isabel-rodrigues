@@ -105,26 +105,56 @@ resource "aws_lambda_function" "auth" {
   depends_on = [aws_cloudwatch_log_group.auth]
 }
 
-resource "aws_lambda_function_url" "auth" {
-  function_name = aws_lambda_function.auth.function_name
-
-  # Pública de propósito: é um endpoint de login, chamado pelo navegador
-  # antes de existir qualquer credencial. A proteção é o state/CSRF, a
-  # conferência de origem e a lista de domínios — não a rede.
-  authorization_type = "NONE"
+# Exposição por HTTP API, e não por Function URL.
+#
+# A Function URL seria mais simples — menos recursos, sem estágio, sem
+# integração. Mas esta conta AWS recusa toda Function URL pública: uma
+# função nova, mínima, com authorization_type = "NONE" e a resource policy
+# correta, responde 403 antes de invocar o código, sem gerar log. O 403 não
+# vem daqui, e não há o que corrigir no Terraform para contorná-lo.
+#
+# O HTTP API entrega o mesmo payload format 2.0 que a Function URL: o
+# handler continua lendo rawPath, queryStringParameters e cookies, e
+# devolvendo o array cookies. Nada muda em src/index.mjs.
+#
+# Público de propósito: é um endpoint de login, chamado pelo navegador antes
+# de existir qualquer credencial. A proteção é o state/CSRF, a conferência
+# de origem e a lista de domínios — não a rede.
+resource "aws_apigatewayv2_api" "auth" {
+  name          = var.function_name
+  protocol_type = "HTTP"
+  description   = "Intermediario OAuth do painel"
 }
 
-# authorization_type = "NONE" sozinho NÃO libera a chamada: a Function URL
-# exige, além disso, uma permissão no resource policy da função. Sem ela a
-# AWS responde 403 antes de invocar o código — nem log aparece.
-#
-# Declarada aqui de propósito, em vez de contar com o que o provider cria
-# junto da Function URL: assim o state conhece a permissão e o plano avisa
-# se ela sumir.
-resource "aws_lambda_permission" "url_publica" {
-  statement_id           = "FunctionURLAllowPublicAccess"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = aws_lambda_function.auth.function_name
-  principal              = "*"
-  function_url_auth_type = "NONE"
+resource "aws_apigatewayv2_integration" "auth" {
+  api_id           = aws_apigatewayv2_api.auth.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.auth.invoke_arn
+
+  # 2.0 é o que dá rawPath e cookies, como a Function URL dava.
+  payload_format_version = "2.0"
+}
+
+# Rota coringa: quem decide o caminho é o handler, que já trata
+# /oauth/authorize, /oauth/redirect e os apelidos /auth e /callback.
+resource "aws_apigatewayv2_route" "padrao" {
+  api_id    = aws_apigatewayv2_api.auth.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+# Estágio $default: o caminho não ganha prefixo de estágio, então a origem
+# do CloudFront aponta para a raiz do domínio do API.
+resource "aws_apigatewayv2_stage" "padrao" {
+  api_id      = aws_apigatewayv2_api.auth.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+resource "aws_lambda_permission" "api" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.auth.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.auth.execution_arn}/*/*"
 }
