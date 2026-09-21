@@ -28,16 +28,30 @@ const DOMINIOS = (process.env.ALLOWED_DOMAINS ?? '')
   .map((d) => d.trim().toLowerCase())
   .filter(Boolean);
 
-/** Cache entre invocações: o segredo não muda entre uma e outra. */
+/**
+ * Cache com validade. Sem o prazo, um segredo rotacionado só passava a valer
+ * quando a AWS reciclava o contêiner por conta própria — e até lá o login
+ * falhava com "incorrect_client_credentials" sem motivo aparente, porque o
+ * Parameter Store já tinha o valor novo. Cinco minutos mantêm a economia de
+ * chamadas numa rajada de logins e limitam a espera depois de uma troca.
+ */
+const VALIDADE_CACHE_MS = 5 * 60 * 1000;
 let segredoEmCache;
+let segredoLidoEm = 0;
 
 async function clientSecret() {
-  if (!segredoEmCache) {
+  const agora = Date.now();
+
+  if (!segredoEmCache || agora - segredoLidoEm > VALIDADE_CACHE_MS) {
     const resposta = await ssm.send(
       new GetParameterCommand({ Name: PARAMETRO_SEGREDO, WithDecryption: true }),
     );
-    segredoEmCache = resposta.Parameter?.Value ?? '';
+    // O trim evita que espaço ou quebra de linha guardados junto com o valor
+    // derrubem o login: o GitHub compara byte a byte.
+    segredoEmCache = (resposta.Parameter?.Value ?? '').trim();
+    segredoLidoEm = agora;
   }
+
   return segredoEmCache;
 }
 
