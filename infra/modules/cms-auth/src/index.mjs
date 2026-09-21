@@ -132,6 +132,10 @@ function paginaResposta(estado, conteudo) {
 }
 
 function erro(codigo, mensagem) {
+  // Sem isto o fluxo falha em silêncio: a página de erro vai para o painel,
+  // que mostra uma mensagem genérica, e o CloudWatch não guarda pista
+  // nenhuma. Nunca registre o token nem o segredo aqui.
+  console.error('falha de autenticacao', JSON.stringify({ codigo, mensagem }));
   return paginaResposta('error', { provider: PROVEDOR, error: mensagem, errorCode: codigo });
 }
 
@@ -199,15 +203,24 @@ async function retorno(evento) {
   }
 
   if (!resposta.ok) {
+    console.error('github recusou', JSON.stringify({ status: resposta.status }));
     return erro('TOKEN_REQUEST_FAILED', 'O GitHub recusou a troca do código.');
   }
 
   const dados = await resposta.json();
 
   if (dados.error || !dados.access_token) {
+    // O motivo exato vem aqui — tipicamente bad_verification_code (código
+    // reusado ou expirado) ou incorrect_client_credentials (o segredo no
+    // Parameter Store não é o do OAuth App). Nenhum dos dois é segredo.
+    console.error(
+      'troca de token falhou',
+      JSON.stringify({ error: dados.error, descricao: dados.error_description }),
+    );
     return erro('TOKEN_REQUEST_FAILED', dados.error_description || 'Token não veio.');
   }
 
+  console.log('token obtido', JSON.stringify({ escopo: dados.scope }));
   return paginaResposta('success', { provider: PROVEDOR, token: dados.access_token });
 }
 
