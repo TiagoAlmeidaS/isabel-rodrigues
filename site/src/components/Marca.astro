@@ -2,17 +2,33 @@
 interface Props { tamanho?: string; class?: string; }
 const { tamanho = '22px', class: classe = '' } = Astro.props;
 ---
-<a href="/" class:list={['marca', classe]} style={`font-size:${tamanho}`} aria-label="Isabel Rodrigues, página inicial">
+<a href="/" class:list={['marca', classe]} style={`--tamanho-marca:${tamanho}`} aria-label="Isabel Rodrigues, página inicial">
   <span><span>Isabel</span></span>
   <span><span>Rodrigues</span></span>
 </a>
 
 <style>
+  /* O tamanho vem por variável, e não por font-size inline: estilo inline
+     vence qualquer media query, e o celular precisa de outro tamanho. */
   .marca {
     font-family: var(--display);
+    font-size: var(--tamanho-marca);
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--tinta);
     line-height: 1.1;
+  }
+
+  /* No celular o nome inteiro numa linha pede 274px, e sobram uns 160.
+     Empilhar usa os dois spans que já existem por causa da animação de
+     abertura — cada palavra continua subindo dentro do próprio recorte.
+     O clamp mantém "RODRIGUES" inteiro até em telas de 320px. */
+  @media (max-width: 560px) {
+    .marca {
+      flex-direction: column;
+      gap: 0;
+      font-size: clamp(15px, 4.6vw, 19px);
+      letter-spacing: 0.16em;
+    }
   }
 </style>

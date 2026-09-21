@@ -2,29 +2,228 @@
 import Marca from './Marca.astro';
 interface Props { solida?: boolean; }
 const { solida = false } = Astro.props;
+
+const links = [
+  { href: '/ensaios/newborn/', texto: 'Ensaios' },
+  { href: '/#sobre', texto: 'Sobre' },
+  { href: '/#investimento', texto: 'Investimento' },
+];
 ---
 <header class:list={['nav', solida && 'solida']} data-nav>
   <Marca />
-  <nav aria-label="Principal">
-    <a href="/ensaios/newborn/" class="filete">Ensaios</a>
-    <a href="/#sobre" class="filete">Sobre</a>
-    <a href="/#investimento" class="filete">Investimento</a>
-    <a href="/agendar/" class="botao botao--marca">Agendar ensaio</a>
+  <nav aria-label="Principal" class="nav__links">
+    {links.map((l) => <a href={l.href} class="filete">{l.texto}</a>)}
+    <a href="/agendar/" class="botao botao--marca agendar" aria-label="Agendar ensaio">
+      Agendar<span class="agendar__resto"> ensaio</span>
+    </a>
+    <button
+      type="button"
+      class="abrir-menu"
+      aria-expanded="false"
+      aria-controls="menu-movel"
+      data-abrir-menu
+    >
+      <span class="icone" aria-hidden="true"><span></span><span></span></span>
+      <span class="visualmente-oculto">Abrir menu</span>
+    </button>
   </nav>
 </header>
 
+<!-- <dialog> modal: prende o foco, fecha com Esc, deixa o resto da página
+     inerte para leitor de tela e devolve o foco ao botão ao fechar. -->
+<dialog id="menu-movel" class="menu-movel" aria-label="Menu" data-menu>
+  <button type="button" class="fechar-menu" data-fechar-menu>
+    <span class="icone icone--x" aria-hidden="true"><span></span><span></span></span>
+    <span class="visualmente-oculto">Fechar menu</span>
+  </button>
+
+  <nav aria-label="Principal, celular" class="menu-movel__links">
+    {links.map((l) => <a href={l.href}>{l.texto}</a>)}
+  </nav>
+
+  <a href="/agendar/" class="botao botao--marca menu-movel__agendar">Agendar ensaio</a>
+</dialog>
+
 <style>
-  nav {
+  .nav__links {
     flex-grow: 1;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 36px;
   }
-  nav a { font-size: 14px; letter-spacing: 0.08em; color: var(--tinta); }
-  nav .botao { font-size: 14px; padding: 14px 26px; color: #fff; }
+  .nav__links a { font-size: 14px; letter-spacing: 0.08em; color: var(--tinta); }
+  .nav__links .botao { font-size: 14px; padding: 14px 26px; color: #fff; }
 
-  @media (max-width: 760px) {
-    nav a:not(.botao) { display: none; }
+  .abrir-menu { display: none; }
+
+  /* O cabeçalho completo precisa de 956px (marca 274 + links 474 + gutters
+     de 80). Abaixo de 1024 ele cortava o nome e quebrava o botão — no iPad em
+     pé inclusive. Daí para baixo, cabeçalho compacto com menu. */
+  @media (max-width: 1023px) {
+    /* Só os links do cabeçalho: o <nav> de dentro do menu está neste mesmo
+       componente, e um seletor solto como "nav a" o escondia junto. */
+    .nav__links { gap: 10px; }
+    .nav__links a:not(.botao) { display: none; }
+
+    /* Uma linha só: quebrado em duas, o botão levava o cabeçalho fixo a
+       130px — 16% da tela, o tempo todo. */
+    .nav__links .botao { padding: 11px 16px; white-space: nowrap; line-height: 1.4; }
+
+    .abrir-menu { display: inline-flex; }
+  }
+
+  /* Abaixo disto "Agendar ensaio" não cabe ao lado da marca e do menu. O
+     texto completo segue no aria-label e no botão de dentro do menu. */
+  @media (max-width: 420px) {
+    .agendar__resto { display: none; }
+  }
+
+  /* Botões de ícone ----------------------------------------------------- */
+
+  .abrir-menu,
+  .fechar-menu {
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -10px; /* o ícone alinha com a margem; a área de toque, não */
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--tinta);
+    cursor: pointer;
+  }
+
+  .icone {
+    position: relative;
+    display: block;
+    width: 22px;
+    height: 12px;
+  }
+  .icone > span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    background: currentColor;
+  }
+  .icone > span:first-child { top: 0; }
+  .icone > span:last-child { bottom: 0; }
+
+  /* Mesma especificidade das regras de cima (e declarado depois): com um
+     seletor mais fraco, o "top: 0" do primeiro traço vencia e o X virava ">". */
+  .icone--x { height: 22px; }
+  .icone--x > span:first-child,
+  .icone--x > span:last-child { top: 50%; bottom: auto; margin-top: -0.75px; }
+  .icone--x > span:first-child { transform: rotate(45deg); }
+  .icone--x > span:last-child { transform: rotate(-45deg); }
+
+  /* Menu em tela cheia -------------------------------------------------- */
+
+  .menu-movel {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 18px var(--gutter) 40px;
+    border: 0;
+    background: var(--areia);
+    color: var(--tinta);
+  }
+  .menu-movel[open] {
+    display: flex;
+    flex-direction: column;
+    animation: menu-entra 0.35s var(--saida);
+  }
+  .menu-movel::backdrop { background: transparent; }
+
+  @keyframes menu-entra {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .fechar-menu {
+    display: inline-flex;
+    align-self: flex-end;
+  }
+
+  .menu-movel__links {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .menu-movel__links a {
+    padding-block: 6px;
+    font-family: var(--display);
+    font-size: 40px;
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: 0;
+    color: var(--tinta);
+  }
+
+  .menu-movel__agendar {
+    padding: 16px 26px;
+    font-size: 15px;
+    text-align: center;
   }
 </style>
+
+<script>
+  const menu = document.querySelector<HTMLDialogElement>('[data-menu]');
+  const abrir = document.querySelector<HTMLButtonElement>('[data-abrir-menu]');
+  const fechar = document.querySelector<HTMLButtonElement>('[data-fechar-menu]');
+
+  if (menu && abrir && fechar) {
+    abrir.addEventListener('click', () => {
+      menu.showModal();
+      abrir.setAttribute('aria-expanded', 'true');
+    });
+
+    // Todo caminho de fechamento passa por aqui, e é aqui que o
+    // aria-expanded volta a "false". Não dá para confiar no evento "close"
+    // do <dialog>: no teste ele não disparou, e o leitor de tela anunciaria
+    // o menu como aberto com ele já fechado.
+    const fecharMenu = () => {
+      if (menu.open) menu.close();
+      abrir.setAttribute('aria-expanded', 'false');
+    };
+
+    // Pelo X ou pelo Esc, o foco volta ao botão que abriu: quem navega por
+    // teclado continua de onde estava.
+    const fecharEVoltar = () => {
+      fecharMenu();
+      abrir.focus();
+    };
+
+    fechar.addEventListener('click', fecharEVoltar);
+
+    // O <dialog> deveria fechar sozinho com Esc, mas nem todo navegador
+    // cumpre: no teste, o keydown chegava confiável e o diálogo não disparava
+    // nem "cancel" nem "close". Tratado aqui, não depende disso.
+    menu.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      fecharEVoltar();
+    });
+
+    // Rede de segurança: se o navegador fechar por conta própria, o estado
+    // acompanha.
+    menu.addEventListener('close', () => abrir.setAttribute('aria-expanded', 'false'));
+
+    // Link de âncora na mesma página (/#sobre) só rola se o menu sair da
+    // frente antes da navegação. Aqui o foco não volta ao botão: ele segue
+    // para onde o link leva.
+    menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', fecharMenu));
+
+    // Girou o celular ou alargou a janela: o menu não faz mais sentido aberto.
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+      if (e.matches) fecharMenu();
+    });
+  }
+</script>

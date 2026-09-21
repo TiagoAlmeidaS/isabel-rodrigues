@@ -216,6 +216,37 @@ img { display: block; max-width: 100%; height: auto; }
   padding-block: 18px;
 }
 
+/* No celular o cabeçalho fixo tem de ser magro: tudo o que ele ocupa sai
+   da foto. O gap de 48px sozinho comia 13% de uma tela de 375px. */
+@media (max-width: 760px) {
+  .nav { gap: 12px; padding-block: 14px; }
+  .nav.solida { padding-block: 10px; }
+}
+
+/* O cabeçalho é fixo: sem margem, um link de âncora (/#investimento) para a
+   seção com o começo dela escondido atrás dele. */
+section[id] { scroll-margin-top: 100px; }
+@media (max-width: 760px) {
+  section[id] { scroll-margin-top: 72px; }
+}
+
+/* Com o menu aberto a página de trás não rola. */
+html:has(dialog[open]) { overflow: hidden; }
+
+/* Texto só para leitor de tela --------------------------------------- */
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Pausa geral --------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
