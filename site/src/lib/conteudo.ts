@@ -38,6 +38,12 @@ export interface Contato {
   mensagemPadrao: string;
 }
 
+export interface Pacote {
+  nome: string;
+  itens: string[];
+  destaque: boolean;
+}
+
 export interface Agenda {
   mes: string;
   datasAbertas: number;
@@ -47,6 +53,19 @@ export interface Agenda {
 export const textos = textosJson;
 export const contato = contatoJson as Contato;
 export const agenda = agendaJson as Agenda;
+
+/**
+ * Pacotes são opcionais no painel: com a lista vazia o Sveltia pode gravar
+ * [] ou simplesmente omitir a chave, e um pacote sem itens pode vir sem
+ * "itens". Tudo chega aqui já normalizado.
+ */
+export const pacotes: Pacote[] = (
+  (textosJson as { pacotes?: Partial<Pacote>[] }).pacotes ?? []
+).map((p) => ({
+  nome: p.nome ?? '',
+  itens: p.itens ?? [],
+  destaque: p.destaque ?? false,
+}));
 
 const categorias = (categoriasJson.categorias ?? []) as Categoria[];
 const fotos = (fotosJson.fotos ?? []) as Foto[];

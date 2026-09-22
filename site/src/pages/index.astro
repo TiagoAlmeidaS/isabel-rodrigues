@@ -4,7 +4,7 @@ import Foto from '../components/Foto.astro';
 import FaixaNome from '../components/FaixaNome.astro';
 import FaixaAgenda from '../components/FaixaAgenda.astro';
 import {
-  textos, categoriasVisiveis, capaDe, destaques, linkWhatsApp, agenda,
+  textos, pacotes, categoriasVisiveis, capaDe, destaques, linkWhatsApp, agenda,
 } from '../lib/conteudo';
 
 const categorias = categoriasVisiveis();
@@ -117,16 +117,18 @@ const [primeiro, segundo, ...resto] = selecao;
 
     <p class="intro" data-reveal>{textos.investimentoIntro}</p>
 
-    <div class="grade grade--3" data-escalonar>
-      {textos.pacotes.map((pacote) => (
-        <article class:list={['pacote', pacote.destaque && 'pacote--destaque']} data-reveal>
-          <h3>{pacote.nome}</h3>
-          <ul>
-            {pacote.itens.map((item) => <li>{item}</li>)}
-          </ul>
-        </article>
-      ))}
-    </div>
+    {pacotes.length > 0 && (
+      <div class="grade grade--3" data-escalonar>
+        {pacotes.map((pacote) => (
+          <article class:list={['pacote', pacote.destaque && 'pacote--destaque']} data-reveal>
+            <h3>{pacote.nome}</h3>
+            <ul>
+              {pacote.itens.map((item) => <li>{item}</li>)}
+            </ul>
+          </article>
+        ))}
+      </div>
+    )}
 
     <div class="chamada-valores" data-reveal>
       <span>Quer os valores de {agenda.mes}? Levo dois minutos pra responder.</span>

@@ -106,6 +106,9 @@ collections:
           - name: pacotes
             label: Pacotes
             widget: list
+            # Opcional: a seção de investimento funciona sem pacotes (a
+            # chamada para pedir os valores continua lá).
+            required: false
             summary: '{{fields.nome}}'
             fields:
               - { name: nome, label: Nome, widget: string }
