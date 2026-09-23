@@ -88,7 +88,15 @@ collections:
               - name: slug
                 label: Endereço
                 widget: string
-                hint: Parte final da URL. Mudar isto quebra links já enviados.
+                # Vira caminho de URL: espaço, acento ou maiúscula deixam o
+                # link quebrado. O painel recusa antes de gravar.
+                pattern:
+                  - '^[a-z0-9]+(-[a-z0-9]+)*$'
+                  - Só letras minúsculas sem acento, números e hífen. Ex.: colacao-de-grau
+                hint: >-
+                  Parte final da URL, em minúsculas sem acento e com hífen no
+                  lugar do espaço (ex.: colacao-de-grau). Mudar isto quebra
+                  links já enviados e desliga as fotos já marcadas.
               - { name: chamada, label: Chamada curta, widget: string }
               - { name: descricao, label: Descrição, widget: text }
               - { name: capa, label: Capa (se nenhuma foto estiver marcada), widget: image, required: false }

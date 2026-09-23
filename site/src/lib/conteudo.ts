@@ -67,8 +67,39 @@ export const pacotes: Pacote[] = (
   destaque: p.destaque ?? false,
 }));
 
-const categorias = (categoriasJson.categorias ?? []) as Categoria[];
-const fotos = (fotosJson.fotos ?? []) as Foto[];
+/**
+ * O painel grava campo opcional vazio como null (número) ou "" (texto),
+ * não omitindo a chave. Sem normalizar aqui, `astro check` reprova o JSON
+ * e o deploy inteiro para — sem que ela veja nada além do site parado.
+ */
+const vazio = (v: unknown): boolean => v === null || v === undefined || v === '';
+
+const normalizarFoto = (f: Record<string, unknown>): Foto => ({
+  arquivo: (f.arquivo as string) ?? '',
+  categoria: (f.categoria as string) ?? '',
+  descricao: (f.descricao as string) ?? '',
+  capa: f.capa === true,
+  cor: vazio(f.cor) ? undefined : (f.cor as string),
+  ordem: vazio(f.ordem) ? undefined : Number(f.ordem),
+});
+
+const normalizarCategoria = (c: Record<string, unknown>): Categoria => ({
+  slug: (c.slug as string) ?? '',
+  nome: (c.nome as string) ?? '',
+  chamada: (c.chamada as string) ?? '',
+  descricao: (c.descricao as string) ?? '',
+  capa: vazio(c.capa) ? '' : (c.capa as string),
+  visivel: c.visivel !== false,
+  ordem: vazio(c.ordem) ? 999 : Number(c.ordem),
+});
+
+const categorias: Categoria[] = (
+  (categoriasJson.categorias ?? []) as Record<string, unknown>[]
+).map(normalizarCategoria);
+
+const fotos: Foto[] = ((fotosJson.fotos ?? []) as Record<string, unknown>[]).map(
+  normalizarFoto,
+);
 
 const porOrdem = <T extends { ordem?: number }>(a: T, b: T) =>
   (a.ordem ?? 999) - (b.ordem ?? 999);
@@ -96,12 +127,33 @@ export function fotosOrfas(
   return orfas;
 }
 
+/** Mesma regra que o painel aplica no campo "Endereço" da categoria. */
+const SLUG_VALIDO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * Ensaios cujo endereço não serve como caminho de URL. O painel passou a
+ * recusar isto na origem, mas o que já foi gravado antes continua aqui.
+ */
+export function categoriasComSlugInvalido(
+  lista: Categoria[] = categorias,
+): Categoria[] {
+  return lista.filter((c) => !SLUG_VALIDO.test(c.slug));
+}
+
 /**
  * Aviso no log do build. Não derruba a publicação de propósito: uma foto
  * órfã não justifica deixar o site inteiro sem atualizar. O que ela vê é a
  * galeria vazia; o log diz o porquê.
  */
 function avisarSobreOrfas(): void {
+  for (const c of categoriasComSlugInvalido()) {
+    console.warn(
+      `[conteudo] o ensaio "${c.nome}" tem endereço "${c.slug}", que não ` +
+        'serve como URL (espaço, acento ou maiúscula). A página dele fica ' +
+        'inacessível. Use só minúsculas sem acento e hífen.',
+    );
+  }
+
   for (const [slug, lista] of fotosOrfas()) {
     console.warn(
       `[conteudo] ${lista.length} foto(s) apontam para o ensaio "${slug}", ` +
