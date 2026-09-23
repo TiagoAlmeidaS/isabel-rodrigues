@@ -36,6 +36,8 @@ jobs:
 
       - run: npx astro check
 
+      - run: npm test
+
       - run: npm run build
         env:
           PUBLIC_IMG_BASE: ${{ vars.PUBLIC_IMG_BASE }}

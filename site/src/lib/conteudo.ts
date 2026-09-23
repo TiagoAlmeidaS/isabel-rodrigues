@@ -73,6 +73,47 @@ const fotos = (fotosJson.fotos ?? []) as Foto[];
 const porOrdem = <T extends { ordem?: number }>(a: T, b: T) =>
   (a.ordem ?? 999) - (b.ordem ?? 999);
 
+/**
+ * Fotos apontando para um ensaio que não existe mais, agrupadas pelo slug
+ * órfão. Acontece quando o campo "Endereço" de uma categoria é editado ou
+ * a categoria é removida: o vínculo é por string, então as fotos ficam
+ * para trás sem que nada reclame — e a galeria some do site.
+ */
+export function fotosOrfas(
+  listaFotos: Foto[] = fotos,
+  listaCategorias: Categoria[] = categorias,
+): Map<string, Foto[]> {
+  const slugs = new Set(listaCategorias.map((c) => c.slug));
+  const orfas = new Map<string, Foto[]>();
+
+  for (const foto of listaFotos) {
+    if (slugs.has(foto.categoria)) continue;
+    const mesmoSlug = orfas.get(foto.categoria) ?? [];
+    mesmoSlug.push(foto);
+    orfas.set(foto.categoria, mesmoSlug);
+  }
+
+  return orfas;
+}
+
+/**
+ * Aviso no log do build. Não derruba a publicação de propósito: uma foto
+ * órfã não justifica deixar o site inteiro sem atualizar. O que ela vê é a
+ * galeria vazia; o log diz o porquê.
+ */
+function avisarSobreOrfas(): void {
+  for (const [slug, lista] of fotosOrfas()) {
+    console.warn(
+      `[conteudo] ${lista.length} foto(s) apontam para o ensaio "${slug}", ` +
+        'que não existe em categorias.json. Elas não aparecem em lugar ' +
+        'nenhum do site. Provável causa: o endereço da categoria foi ' +
+        'alterado ou a categoria foi removida no painel.',
+    );
+  }
+}
+
+avisarSobreOrfas();
+
 /** Categorias que aparecem na home e no menu. */
 export function categoriasVisiveis(): Categoria[] {
   return categorias.filter((c) => c.visivel).sort(porOrdem);

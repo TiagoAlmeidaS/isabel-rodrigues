@@ -50,8 +50,16 @@ collections:
               - { name: arquivo, label: Arquivo, widget: image }
               - name: categoria
                 label: Ensaio
-                widget: select
-                options: [gestante, newborn, familia, smash-the-cake]
+                # Lê as opções direto da coleção Ensaios: categoria criada
+                # lá aparece aqui na hora, sem mexer neste arquivo. Ela
+                # escolhe pelo nome; o que fica gravado é o slug, que é
+                # como o site casa foto com ensaio (ver lib/conteudo.ts).
+                widget: relation
+                collection: ensaios
+                file: categorias
+                display_fields: ['categorias.*.nome']
+                search_fields: ['categorias.*.nome']
+                value_field: 'categorias.*.slug'
               - name: descricao
                 label: Descrição
                 widget: string
