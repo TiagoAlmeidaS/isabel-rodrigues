@@ -3,29 +3,38 @@
     {
       "nome": "Colação de grau",
       "slug": "colação de grau",
-      "chamada": "kcyilo",
-      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
-      "capa": "https://isabelrodrigues.com.br/fit-in/1280x0/IMG_5374.JPG",
+      "chamada": "Uma conquista que merece ser lembrada para sempre.",
+      "descricao": "Da emoção da cerimônia até os abraços, sorrisos e comemorações. Fotografias para guardar não apenas o diploma, mas toda a história por trás dessa conquista.",
+      "capa": "https://isabelrodrigues.com.br/fit-in/1280x0/IMG_5389.JPG",
       "visivel": true,
       "ordem": 2
     },
     {
-      "nome": "Família",
-      "slug": "familia",
-      "chamada": "Em casa ou ao ar livre",
-      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
-      "capa": "familia/capa.jpg",
+      "nome": "Gestante",
+      "slug": "gestante",
+      "chamada": "Um novo capítulo começa aqui.",
+      "descricao": "Um ensaio pensado para celebrar a espera, a conexão e a beleza desse momento único. Meu objetivo é criar registros leves e naturais, valorizando você, sua história e a expectativa pela chegada de um novo amor.",
+      "capa": "https://isabelrodrigues.com.br/fit-in/1280x0/22033dd2-3f98-4157-a0c3-f639b20f6a34.jpg",
       "visivel": true,
       "ordem": 3
     },
     {
-      "nome": "Smash the cake",
-      "slug": "smash-the-cake",
-      "chamada": "O primeiro aniversário",
-      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
+      "nome": "Aniversário",
+      "slug": "aniversário",
+      "chamada": "Mais do que uma festa, uma história para guardar.",
+      "descricao": "A energia, os encontros e todos aqueles pequenos momentos que fazem uma comemoração ser especial. Das grandes celebrações aos detalhes mais espontâneos, entrego fotografias que fazem você reviver o dia.",
       "capa": "smash-the-cake/capa.jpg",
-      "visivel": false,
+      "visivel": true,
       "ordem": 4
+    },
+    {
+      "nome": "Ensaio externo",
+      "slug": "ensaio",
+      "chamada": "Você, do seu jeito, em um lugar que combina com a sua história.",
+      "descricao": "Ensaios externos para registrar fases, conexões e momentos especiais de forma leve e espontânea. Seja individual, em casal ou em família, criamos imagens que tenham a sua personalidade e façam sentido para você.",
+      "capa": "https://isabelrodrigues.com.br/fit-in/1280x0/IMG_6118.JPG",
+      "visivel": true,
+      "ordem": 1
     }
   ]
 }
