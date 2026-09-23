@@ -1,26 +1,17 @@
 {
   "categorias": [
     {
-      "slug": "gestante",
-      "nome": "Gestante",
-      "chamada": "A partir da 28ª semana",
-      "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA — quando fazer, quanto dura, o que levar.]",
-      "capa": "gestante/capa.jpg",
-      "visivel": true,
-      "ordem": 1
-    },
-    {
-      "slug": "newborn",
-      "nome": "Newborn",
-      "chamada": "Nos primeiros 15 dias",
+      "nome": "Colação de grau",
+      "slug": "colação de grau",
+      "chamada": "kcyilo",
       "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
-      "capa": "newborn/capa.jpg",
+      "capa": "https://isabelrodrigues.com.br/fit-in/1280x0/IMG_5374.JPG",
       "visivel": true,
       "ordem": 2
     },
     {
-      "slug": "familia",
       "nome": "Família",
+      "slug": "familia",
       "chamada": "Em casa ou ao ar livre",
       "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
       "capa": "familia/capa.jpg",
@@ -28,8 +19,8 @@
       "ordem": 3
     },
     {
-      "slug": "smash-the-cake",
       "nome": "Smash the cake",
+      "slug": "smash-the-cake",
       "chamada": "O primeiro aniversário",
       "descricao": "[UMA FRASE SOBRE ESSA CATEGORIA.]",
       "capa": "smash-the-cake/capa.jpg",
