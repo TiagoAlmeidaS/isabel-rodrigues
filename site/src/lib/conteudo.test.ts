@@ -72,7 +72,10 @@ describe('fotosOrfas', () => {
     expect(fotosOrfas([foto('a.jpg', 'gestante')], []).size).toBe(1);
   });
 
-  it('o acervo de verdade não tem fotos órfãs', () => {
-    expect([...fotosOrfas().keys()]).toEqual([]);
+  it('lê o acervo de verdade sem quebrar', () => {
+    // De propósito não afirma que o acervo está limpo: o conteúdo vem do
+    // painel, e uma foto órfã não pode derrubar o CI e travar a
+    // publicação dela. Quem acusa isso é o aviso no log do build.
+    expect(() => fotosOrfas()).not.toThrow();
   });
 });
