@@ -16,6 +16,29 @@ backend:
   auth_endpoint: oauth/authorize
 
 media_libraries:
+  # Vale para todas as bibliotecas, inclusive a do S3 abaixo.
+  all:
+    # A foto é encolhida e recomprimida NO NAVEGADOR, antes de subir. Nada
+    # é bloqueado: ela escolhe o arquivo da câmera do jeito que está e o
+    # upload acontece igual, só que leve.
+    #
+    # O original da câmera tem uns 15 MB e 6000px de largura. O site nunca
+    # pede mais que 1280px (ver LARGURAS em src/lib/imagem.ts), então 2560
+    # deixa folga para recorte e tela retina sem carregar peso morto — e é
+    # o que fazia o encoder AVIF estourar o tempo da Lambda e devolver 504.
+    #
+    # webp é o único formato de conversão que o Sveltia faz no navegador.
+    # Não importa para o site: a CDN reconverte para avif/webp/jpeg na
+    # entrega, e partir de um arquivo pequeno deixa isso rápido.
+    transformations:
+      raster_image:
+        format: webp
+        quality: 82
+        width: 2560
+    # Teto só para o que nem a compressão salva (vídeo, PSD, TIFF enorme).
+    # Foto de câmera passa longe disto depois de transformada.
+    max_file_size: 52428800
+
   aws_s3:
     access_key_id: 'AKIA2FIWVTW225YMZLZZ'
     bucket: isabel-prod-fotos
@@ -110,6 +133,12 @@ collections:
         label: Textos da home
         file: site/src/data/textos.json
         fields:
+          - name: chamadaMarca
+            label: Chamada ao lado do nome
+            widget: string
+            hint: >-
+              Aparece no rodapé e na faixa do nome, junto da cidade. Descreve
+              o que você fotografa hoje. Ex.: Fotografia de família
           - { name: heroSuperior, label: Linha acima do título, widget: string }
           - { name: heroTitulo, label: Título da abertura, widget: string }
           - { name: sobreRotulo, label: Rótulo do Sobre, widget: string }

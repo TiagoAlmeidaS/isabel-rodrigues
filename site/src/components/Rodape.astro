@@ -1,11 +1,11 @@
 ---
-import { contato, linkWhatsApp } from '../lib/conteudo';
+import { contato, chamadaMarca, linkWhatsApp } from '../lib/conteudo';
 const ano = new Date().getFullYear();
 ---
 <footer class="rodape container">
   <div class="rodape__marca">
     <span class="nome">Isabel Rodrigues</span>
-    <span class="cidade">Fotografia de família · {contato.cidade}</span>
+    <span class="cidade">{chamadaMarca} · {contato.cidade}</span>
   </div>
   <div>
     <span class="rotulo">Contato</span>

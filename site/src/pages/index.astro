@@ -5,6 +5,7 @@ import FaixaNome from '../components/FaixaNome.astro';
 import FaixaAgenda from '../components/FaixaAgenda.astro';
 import {
   textos, pacotes, categoriasVisiveis, capaDe, destaques, linkWhatsApp, agenda,
+  chamadaMarca,
 } from '../lib/conteudo';
 
 const categorias = categoriasVisiveis();
@@ -12,12 +13,12 @@ const selecao = destaques(5);
 const [primeiro, segundo, ...resto] = selecao;
 ---
 
-<Base titulo="Isabel Rodrigues — Fotografia de família" descricao={textos.sobreTitulo}>
+<Base titulo={`Isabel Rodrigues — ${chamadaMarca}`} descricao={textos.sobreTitulo}>
   <!-- HERO -->
   <section class="hero">
     <Foto
       arquivo={categorias[0] ? capaDe(categorias[0]) : ''}
-      alt="Ensaio de família em luz natural"
+      alt={categorias[0] ? `Ensaio ${categorias[0].nome}` : chamadaMarca}
       sizes="100vw"
       reveal={false}
       kenburns

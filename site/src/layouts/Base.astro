@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Rodape from '../components/Rodape.astro';
+import { chamadaMarca, contato } from '../lib/conteudo';
 
 interface Props {
   titulo: string;
@@ -11,7 +12,9 @@ interface Props {
 
 const {
   titulo,
-  descricao = 'Fotografia de gestante, newborn e família.',
+  // Vai para a descrição que o Google mostra: sem o campo do painel,
+  // continuaria anunciando ensaios que ela não faz mais.
+  descricao = `${chamadaMarca} em ${contato.cidade}.`,
   navSolida = false,
 } = Astro.props;
 ---

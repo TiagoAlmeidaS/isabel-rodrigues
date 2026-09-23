@@ -50,6 +50,15 @@ export interface Agenda {
   mostrarFaixa: boolean;
 }
 
+/**
+ * A chamada que acompanha o nome no rodapé e na faixa. Era texto fixo em
+ * quatro arquivos, e ficou errada quando os ensaios dela deixaram de ser
+ * só família. O fallback cobre o JSON antigo, sem o campo.
+ */
+export const chamadaMarca: string =
+  (textosJson as { chamadaMarca?: string }).chamadaMarca?.trim() ||
+  'Fotografia de família';
+
 export const textos = textosJson;
 export const contato = contatoJson as Contato;
 export const agenda = agendaJson as Agenda;

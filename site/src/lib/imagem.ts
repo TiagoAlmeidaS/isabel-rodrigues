@@ -12,8 +12,15 @@
 
 const BASE = (import.meta.env.PUBLIC_IMG_BASE ?? '').replace(/\/$/, '');
 
-/** As únicas larguras que o site pede. Mudar isto multiplica transformações. */
-export const LARGURAS = [400, 800, 1280, 2000] as const;
+/**
+ * As únicas larguras que o site pede. Mudar isto multiplica transformações.
+ *
+ * 2000 saiu: o encoder AVIF não terminava dentro dos 30s da Lambda e a CDN
+ * devolvia 504 — que fica cacheado, então a imagem quebrava de vez. Medido
+ * em IMG_6067.JPG a 2000w: jpeg 3,1s, webp 3,6s, avif estourou. As fotos
+ * são retrato (1280x1920), e 1280 já cobre tela cheia em telas comuns.
+ */
+export const LARGURAS = [400, 800, 1280] as const;
 
 /** Do mais novo para o mais compatível: é a ordem que o <picture> respeita. */
 export const FORMATOS = ['avif', 'webp', 'jpeg'] as const;
@@ -26,8 +33,13 @@ export const TIPO_MIME: Record<Formato, string> = {
   jpeg: 'image/jpeg',
 };
 
-/** AVIF aguenta qualidade menor pelo mesmo resultado visual. */
-const QUALIDADE: Record<Formato, number> = { avif: 55, webp: 78, jpeg: 82 };
+/**
+ * AVIF aguenta qualidade menor pelo mesmo resultado visual. A 55 o arquivo
+ * saía em 303 KB a 1280w — mais pesado que o WebP a 78, o que anula a
+ * troca. A 30 o mesmo quadro fica em 133 KB; 40 é o meio-termo, ainda bem
+ * abaixo do WebP e sem faixa visível em pele e céu.
+ */
+const QUALIDADE: Record<Formato, number> = { avif: 40, webp: 78, jpeg: 82 };
 
 /**
  * O painel pode gravar tanto a chave (`newborn/helena-03.jpg`) quanto a URL

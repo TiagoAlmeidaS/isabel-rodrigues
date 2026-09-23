@@ -93,3 +93,54 @@ describe('campo Ensaio da aba Fotos', () => {
     expect(nomes).toContain('nome');
   });
 });
+
+describe('compressão no upload', () => {
+  const todas = config as unknown as { media_libraries: Record<string, any> };
+
+  it('vale para todas as bibliotecas, não só a padrão', () => {
+    // O site usa aws_s3. Se isto ficasse sob `default`, nada seria
+    // comprimido: a foto de 15 MB subiria inteira.
+    expect(todas.media_libraries.all).toBeDefined();
+    expect(todas.media_libraries.all.transformations?.raster_image).toBeDefined();
+  });
+
+  it('encolhe a foto sem impedir o envio', () => {
+    const t = todas.media_libraries.all.transformations.raster_image;
+
+    // Largura com folga sobre o que o site pede, e nenhum bloqueio: o
+    // arquivo da câmera entra do jeito que está e é transformado.
+    expect(t.width).toBeGreaterThan(1280);
+    expect(t.width).toBeLessThanOrEqual(3000);
+    expect(t.quality).toBeGreaterThanOrEqual(75);
+    expect(t.quality).toBeLessThanOrEqual(90);
+  });
+
+  it('converte para um formato que o navegador dela sabe gerar', () => {
+    // webp é o único formato de conversão que o Sveltia faz no cliente.
+    expect(todas.media_libraries.all.transformations.raster_image.format).toBe('webp');
+  });
+
+  it('o teto de tamanho não barra foto de câmera', () => {
+    // Depois de transformada a foto fica na casa das centenas de KB; o
+    // teto existe para vídeo e TIFF, não para o trabalho dela.
+    expect(todas.media_libraries.all.max_file_size).toBeGreaterThanOrEqual(20 * 1024 * 1024);
+  });
+});
+
+describe('chamada da marca', () => {
+  it('é editável no painel', () => {
+    const campo = arquivo('conteudo', 'textos').fields.find((f) => f.name === 'chamadaMarca');
+
+    expect(campo, 'campo "chamadaMarca" sumiu da aba Conteúdo').toBeDefined();
+    expect(campo!.widget).toBe('string');
+  });
+
+  it('existe no JSON que o painel edita', () => {
+    const textos = JSON.parse(
+      readFileSync(new URL('../src/data/textos.json', import.meta.url), 'utf8'),
+    );
+
+    expect(typeof textos.chamadaMarca).toBe('string');
+    expect(textos.chamadaMarca.length).toBeGreaterThan(0);
+  });
+});
