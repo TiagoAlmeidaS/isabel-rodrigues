@@ -24,6 +24,8 @@ export interface Foto {
   categoria: string;
   descricao: string;
   capa?: boolean;
+  /** Marcada para aparecer em "Ensaios recentes", na home. */
+  destaque?: boolean;
   /** Cor dominante, usada como fundo enquanto a foto carrega. */
   cor?: string;
   ordem?: number;
@@ -59,6 +61,20 @@ export const chamadaMarca: string =
   (textosJson as { chamadaMarca?: string }).chamadaMarca?.trim() ||
   'Fotografia de família';
 
+/**
+ * Os dois slots de foto da home que não vinham de nenhum ensaio. O
+ * retrato ficava fixo e vazio no código — sempre o cartaz "[ FOTO ]" — e a
+ * abertura era, sem ela poder dizer nada, a capa da primeira categoria.
+ */
+const texto = (campo: string): string =>
+  ((textosJson as Record<string, unknown>)[campo] as string | undefined)?.trim() ?? '';
+
+/** Retrato da Isabel na seção "Sobre". */
+export const retrato: string = texto('retrato');
+
+/** Foto de abertura. Vazio = a capa do primeiro ensaio, como era antes. */
+export const fotoAbertura: string = texto('fotoAbertura');
+
 export const textos = textosJson;
 export const contato = contatoJson as Contato;
 export const agenda = agendaJson as Agenda;
@@ -88,6 +104,7 @@ const normalizarFoto = (f: Record<string, unknown>): Foto => ({
   categoria: (f.categoria as string) ?? '',
   descricao: (f.descricao as string) ?? '',
   capa: f.capa === true,
+  destaque: f.destaque === true,
   cor: vazio(f.cor) ? undefined : (f.cor as string),
   ordem: vazio(f.ordem) ? undefined : Number(f.ordem),
 });
@@ -202,8 +219,19 @@ export function capaDe(categoria: Categoria): string {
   return marcada?.arquivo ?? categoria.capa ?? '';
 }
 
-/** Uma seleção para a home, sem repetir categoria quando dá para evitar. */
+/**
+ * A seleção de "Ensaios recentes", na home.
+ *
+ * Se ela marcar fotos como destaque no painel, são essas e nessa ordem.
+ * Sem nenhuma marcada, cai na escolha automática de antes — uma por
+ * categoria, sem repetir enquanto dá — para a home nunca ficar vazia só
+ * porque ninguém escolheu ainda.
+ */
 export function destaques(quantidade = 5): Foto[] {
+  const escolhidas = fotos.filter((f) => f.destaque).sort(porOrdem);
+
+  if (escolhidas.length) return escolhidas.slice(0, quantidade);
+
   const capas = categoriasVisiveis()
     .map((c) => fotosDe(c.slug).find((f) => f.capa) ?? fotosDe(c.slug)[0])
     .filter((f): f is Foto => Boolean(f));

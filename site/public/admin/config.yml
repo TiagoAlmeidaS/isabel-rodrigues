@@ -87,7 +87,21 @@ collections:
                 label: Descrição
                 widget: string
                 hint: Para quem não enxerga a foto. Uma frase basta.
-              - { name: capa, label: É a capa do ensaio?, widget: boolean, default: false }
+              - name: capa
+                label: É a capa do ensaio?
+                widget: boolean
+                default: false
+                hint: >-
+                  A capa aparece no cartão do ensaio na home. Só uma por
+                  ensaio; sem nenhuma marcada, vale a "Capa" da aba Ensaios.
+              - name: destaque
+                label: Aparece em "Ensaios recentes"?
+                widget: boolean
+                default: false
+                hint: >-
+                  Marca esta foto para a faixa "Ensaios recentes" da home,
+                  que mostra até 5. Sem nenhuma marcada, o site escolhe
+                  sozinho uma foto de cada ensaio.
               - name: cor
                 label: Cor de fundo
                 widget: string
@@ -133,6 +147,20 @@ collections:
         label: Textos da home
         file: site/src/data/textos.json
         fields:
+          - name: fotoAbertura
+            label: Foto de abertura da home
+            widget: image
+            required: false
+            hint: >-
+              A foto grande do topo do site, atrás do título. Deixando
+              vazio, o site usa a capa do primeiro ensaio da lista.
+          - name: retrato
+            label: Seu retrato (seção "Sobre")
+            widget: image
+            required: false
+            hint: >-
+              Aparece ao lado do texto "Sobre", na home. Enquanto estiver
+              vazio, o site mostra um espaço cinza escrito [ FOTO ].
           - name: chamadaMarca
             label: Chamada ao lado do nome
             widget: string

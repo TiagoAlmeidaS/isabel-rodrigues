@@ -5,10 +5,13 @@ import FaixaNome from '../components/FaixaNome.astro';
 import FaixaAgenda from '../components/FaixaAgenda.astro';
 import {
   textos, pacotes, categoriasVisiveis, capaDe, destaques, linkWhatsApp, agenda,
-  chamadaMarca,
+  chamadaMarca, retrato, fotoAbertura,
 } from '../lib/conteudo';
 
 const categorias = categoriasVisiveis();
+// A abertura é escolhida no painel; sem escolha, segue a capa do primeiro
+// ensaio, que é o que o site fazia antes de o campo existir.
+const abertura = fotoAbertura || (categorias[0] ? capaDe(categorias[0]) : '');
 const selecao = destaques(5);
 const [primeiro, segundo, ...resto] = selecao;
 ---
@@ -17,7 +20,7 @@ const [primeiro, segundo, ...resto] = selecao;
   <!-- HERO -->
   <section class="hero">
     <Foto
-      arquivo={categorias[0] ? capaDe(categorias[0]) : ''}
+      arquivo={abertura}
       alt={categorias[0] ? `Ensaio ${categorias[0].nome}` : chamadaMarca}
       sizes="100vw"
       reveal={false}
@@ -35,7 +38,7 @@ const [primeiro, segundo, ...resto] = selecao;
   <!-- SOBRE -->
   <section id="sobre" class="sobre container">
     <Foto
-      arquivo=""
+      arquivo={retrato}
       alt="Retrato da Isabel"
       sizes="(max-width: 900px) 100vw, 480px"
       reveal="cortina"

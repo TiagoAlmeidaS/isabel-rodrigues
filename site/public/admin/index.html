@@ -8,5 +8,30 @@
   </head>
   <body>
     <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js" type="module"></script>
+    <!--
+      Avisos na hora de salvar: foto marcada para um ensaio que não existe
+      mais, e ensaio renomeado que deixa fotos para trás. O site já detecta
+      as duas coisas, mas só no log do build, que ela não lê.
+
+      O CMS expõe window.CMS depois de carregar, então isto espera. Se
+      demorar demais, desiste em silêncio: o painel funciona sem o aviso,
+      e um painel travado é pior que um aviso perdido.
+    -->
+    <script type="module">
+      const ATE = Date.now() + 15000;
+
+      const ligar = async () => {
+        if (window.CMS) {
+          const { registrar } = await import('./validacao.mjs');
+
+          registrar(window.CMS);
+          return;
+        }
+
+        if (Date.now() < ATE) setTimeout(ligar, 100);
+      };
+
+      ligar().catch((e) => console.warn('[validacao] não carregou', e));
+    </script>
   </body>
 </html>
