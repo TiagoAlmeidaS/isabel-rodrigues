@@ -68,3 +68,13 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "${{ vars.DISTRIBUTION_ID }}" \
             --paths '/*'
+
+      # Gera as variantes de imagem antes do primeiro visitante. Uma
+      # variante fria levava ~30s; quem esperava era quase sempre a Isabel,
+      # que sobe a foto e abre o site em seguida. O site ja esta no ar
+      # aqui, entao isto nunca derruba a publicacao.
+      - name: Aquecer as imagens
+        continue-on-error: true
+        run: npm run aquecer
+        env:
+          PUBLIC_IMG_BASE: ${{ vars.PUBLIC_IMG_BASE }}
