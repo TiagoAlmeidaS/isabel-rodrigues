@@ -4,7 +4,6 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 
-// @ts-expect-error — módulo JS servido ao painel, sem tipos
 import { avaliarSave, fotosOrfas, nomeCurto } from '../public/admin/validacao.mjs';
 
 const cat = (slug: string) => ({ slug, nome: slug });
@@ -112,7 +111,7 @@ describe('salvando ENSAIOS', () => {
   it('pergunta antes de deixar fotos para trás, em vez de barrar', async () => {
     // Renomear pode ser exatamente o que ela quer; o aviso existe para ela
     // saber o preço, não para impedir.
-    const perguntar = vi.fn(() => true);
+    const perguntar = vi.fn((_mensagem: string) => true);
     const r = await avaliarSave({ ...renomeando, perguntar });
 
     expect(perguntar).toHaveBeenCalledOnce();
